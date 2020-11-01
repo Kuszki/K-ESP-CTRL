@@ -1,0 +1,16 @@
+open ttyUSB0
+
+put main.py
+put boot.py
+
+putc lib/server.py
+putc lib/driver.py
+
+put http/index.html
+put http/index.js
+put http/main.css
+put http/tabs.css
+
+put etc/driver.json
+put etc/history.json
+put etc/plot.json

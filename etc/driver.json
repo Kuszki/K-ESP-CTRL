@@ -1,0 +1,22 @@
+{
+	"timers":
+	{
+		"plot":	30,
+		"loop":	10
+	},
+	"history":
+	{
+		"size":	25,
+		"age":	259200
+	},
+	"status":
+	{
+		"driver": false,
+		"power": false
+	},
+	"hyster":
+	{
+		"plus": 1,
+		"minus": 2
+	}
+}

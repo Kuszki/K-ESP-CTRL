@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PATH=$PATH:/usr/local/lib/python3.8/dist-packages/mpy_cross
+
+mpfshell -s upload.mpf
+mpfshell ttyUSB0 -c "repl"

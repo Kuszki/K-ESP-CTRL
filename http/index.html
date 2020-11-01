@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+		<meta http-equiv="Content-Language" content="pl">
+		<meta name="Author" content='Łukasz "Kuszki" Dróżdż'>
+
+		<link rel="stylesheet" type="text/css" href="main.css"/>
+		<link rel="stylesheet" type="text/css" href="tabs.css"/>
+
+		<title>Sterownik K-ESP-CTRL: Status</title>
+
+		<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
+		<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+		<script src="index.js"></script>
+
+		<script>
+			var plot = null;
+
+			moment.locale('pl');
+			$(document).ready(onLoad);
+		</script>
+
+	</head>
+	<body>
+
+	<header>
+		<p>Status sterownika K-ESP-CTRL</p>
+		<nav>
+			<a href="index.html">Informacje</a>
+		</nav>
+	</header>
+
+	<nav>
+		<p>Urządzenie</p>
+		<a href="index.html">Status</a>
+		<a href="prefs.html">Ustawienia</a>
+		<a href="log.html">Historia</a>
+		<p>Sterowanie</p>
+		<a href="javascript:void(0)" onclick="onEnable(1)">Włącz</a>
+		<a href="javascript:void(0)" onclick="onEnable(0)">Wyłącz</a>
+		<a href="javascript:void(0)" onclick="onDriver(1)">Automat</a>
+	</nav>
+
+	<section id="graph">
+		<canvas id="plot" width="800" height="400"></canvas>
+	</section>
+
+	<section id="tables">
+		<div id="temps" class="tabs"></div>
+		<div id="system" class="tabs"></div>
+		<div id="outdor" class="tabs"></div>
+	</section>
+
+	</body>
+</html>

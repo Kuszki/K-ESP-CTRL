@@ -1,0 +1,38 @@
+{
+	"type": "line",
+	"data":
+	{
+		"datasets": []
+	},
+	"options":
+	{
+		"responsive": true,
+		"scales":
+		{
+			"xAxes":
+			[{
+				"type": "time",
+				"time":
+				{
+					"unit": "hour",
+					"tooltipFormat": "LLL",
+					"displayFormats":
+					{
+						"hour": "HH:mm"
+					}
+				}
+			},
+			{
+				"type": "time",
+				"time":
+				{
+					"unit": "day",
+					"displayFormats":
+					{
+						"day": "D MMMM"
+					}
+				}
+			}]
+		}
+	}
+}
