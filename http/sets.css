@@ -1,0 +1,19 @@
+table
+{
+	border: 0;
+	width: 600px;
+	margin-left: 50px;
+	margin-right: auto;
+	text-align: left;
+}
+
+td > *
+{
+	width: 100%;
+}
+
+table tr td:first-child,
+table tr th:first-child
+{
+	width: 65%;
+}

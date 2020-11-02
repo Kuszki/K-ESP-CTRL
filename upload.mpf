@@ -3,14 +3,35 @@ open ttyUSB0
 put main.py
 put boot.py
 
+cd /lib
+mrm .*
+
+cd /http
+mrm .*
+
+cd /etc
+mrm .*
+
+cd /var
+mrm .*
+
+cd /
+mrm .*
+
 putc lib/server.py
 putc lib/driver.py
 
 put http/index.html
+put http/prefs.html
+put http/logs.html
+
 put http/index.js
+put http/toast.js
+
 put http/main.css
 put http/tabs.css
+put http/sets.css
+put http/toast.css
 
 put etc/driver.json
-put etc/history.json
 put etc/plot.json

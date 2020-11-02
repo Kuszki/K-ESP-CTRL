@@ -32,7 +32,7 @@ class server:
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind(('', 80))
-		self.sock.listen(3)
+		self.sock.listen(10)
 		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 
 	def stop(self):
@@ -50,18 +50,15 @@ class server:
 
 		if slite in self.callback:
 			tmp = self.callback[slite](par)
-		else:
-			tmp = None
+		else: tmp = None
 
 		if slite in self.slites:
 			con = self.slites[slite](par)
-		else:
-			con = self.slite(slite);
+		else: con = self.slite(slite);
 
 		if con != None or tmp == True:
 			hed = self.STR_OK
-		else:
-			hed = self.STR_NF
+		else: hed = self.STR_NF
 
 		s.sendall(str(hed))
 		s.sendall(self.STR_CL)
@@ -93,7 +90,7 @@ class server:
 					i = p.split('=')
 					vlist[i[0]] = i[1]
 				else:
-					vlist[p] = ''
+					vlist[p] = None
 
 		if slite == '':
 			slite = 'index.html'
@@ -102,14 +99,13 @@ class server:
 
 	def slite(self, path):
 
-		try:
-			return open('/http/%s' % path, 'r').read()
-		except:
-			con = None
+		try: return open('/http/%s' % path, 'r').read()
+		except: con = None
 
-		try:
-			return open('/etc/%s' % path, 'r').read()
-		except:
-			con = None
+		try: return open('/etc/%s' % path, 'r').read()
+		except: con = None
+
+		try: return open('/var/%s' % path, 'r').read()
+		except: con = None
 
 		return con;

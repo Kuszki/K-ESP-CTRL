@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+		<meta http-equiv="Content-Language" content="pl">
+		<meta name="Author" content='Łukasz "Kuszki" Dróżdż'>
+
+		<link rel="stylesheet" type="text/css" href="main.css"/>
+
+		<title>Dziennik K-ESP-CTRL: Ustawienia</title>
+
+		<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+		<script src="logs.js"></script>
+
+		<script>
+			$(document).ready(onLoad);
+		</script>
+
+	</head>
+	<body>
+
+	<header>
+		<p>Ustawienia sterownika K-ESP-CTRL</p>
+		<nav>
+			<a href="index.html">Informacje</a>
+		</nav>
+	</header>
+
+	<nav>
+		<p>Urządzenie</p>
+		<a href="index.html">Status</a>
+		<a href="prefs.html">Ustawienia</a>
+		<a href="logs.html">Historia</a>
+		<p>Akcje</p>
+		<a href="javascript:void(0)" onclick="onSave()">Zapisz</a>
+	</nav>
+
+	<section>
+		<div id="log"></div>
+	</section>
+
+	</body>
+</html>

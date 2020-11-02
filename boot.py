@@ -5,4 +5,5 @@ machine.freq(160000000)
 gc.enable()
 gc.collect()
 
-ntptime.settime()
+try: ntptime.settime()
+except: print('\n')

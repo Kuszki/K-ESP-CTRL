@@ -1,3 +1,5 @@
+var set_locked = false;
+
 function onLoad()
 {
 
@@ -10,6 +12,8 @@ function onLoad()
 	)
 	.done(function(config, data)
 	{
+		var off = (new Date(2000, 0, 1)) - (new Date(0));
+
 		ctx = $('#plot')[0].getContext('2d');
 		plot = new Chart(ctx, config[0]);
 
@@ -17,6 +21,12 @@ function onLoad()
 		{
 			data[0][i].borderColor = colors[i];
 			data[0][i].fill = false;
+
+			for (j = 0; j < data[0][i].data.length; ++j)
+			{
+				var old = data[0][i].data[j]['t'] * 1000;
+				data[0][i].data[j]['t'] = old + off;
+			}
 		}
 
 		plot.data.datasets = data[0];
@@ -24,7 +34,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#graph').html('Błąd w ładowaniu danych');
+		$('#graph').html('<center>Błąd w ładowaniu danych</center>');
 	});
 
 	$.when($.getJSON('temps.json', onTemps))
@@ -34,7 +44,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#temps').html('Błąd w ładowaniu danych');
+		$('#temps').html('<center>Błąd w ładowaniu danych</center>');
 	});
 
 	$.when($.getJSON('system.json', onSystem))
@@ -44,7 +54,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#system').html('Błąd w ładowaniu danych');
+		$('#system').html('<center>Błąd w ładowaniu danych</center>');
 	});
 
 	$.when($.getJSON('outdor.json', onOutdor))
@@ -54,7 +64,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#outdor').html('Błąd w ładowaniu danych');
+		$('#outdor').html('<center>Błąd w ładowaniu danych</center>');
 	});
 }
 
@@ -96,19 +106,39 @@ function onOutdor(data)
 
 function onEnable(param)
 {
+	if (set_locked) return; else set_locked = false;
+
+	showToast("Łączenie z urządzeniem...", 0);
+
 	$.when($.get("config", { power: param }))
-	.done($.getJSON('system.json', onSystem))
+	.done(function()
+	{
+		$.getJSON('system.json', onSystem);
+		showToast("Sterowanie zaktualizowane", 5000);
+	})
 	.fail(onError);
+
+	set_locked = false;
 }
 
 function onDriver(param)
 {
+	if (set_locked) return; else set_locked = false;
+
+	showToast("Łączenie z urządzeniem...", 0);
+
 	$.when($.get("config", { driver: param }))
-	.done($.getJSON('system.json', onSystem))
+	.done(function()
+	{
+		$.getJSON('system.json', onSystem);
+		showToast("Sterowanie zaktualizowane", 5000);
+	})
 	.fail(onError);
+
+	set_locked = false;
 }
 
 function onError()
 {
-	alert("Nie udało się przetworzyć zapytania");
+	showToast("Nie udało się wykonać zapytania", 5000);
 }

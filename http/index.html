@@ -7,6 +7,7 @@
 
 		<link rel="stylesheet" type="text/css" href="main.css"/>
 		<link rel="stylesheet" type="text/css" href="tabs.css"/>
+		<link rel="stylesheet" type="text/css" href="toast.css"/>
 
 		<title>Sterownik K-ESP-CTRL: Status</title>
 
@@ -15,6 +16,7 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 		<script src="index.js"></script>
+		<script src="toast.js"></script>
 
 		<script>
 			var plot = null;
@@ -37,22 +39,24 @@
 		<p>Urządzenie</p>
 		<a href="index.html">Status</a>
 		<a href="prefs.html">Ustawienia</a>
-		<a href="log.html">Historia</a>
+		<a href="logs.html">Historia</a>
 		<p>Sterowanie</p>
 		<a href="javascript:void(0)" onclick="onEnable(1)">Włącz</a>
 		<a href="javascript:void(0)" onclick="onEnable(0)">Wyłącz</a>
 		<a href="javascript:void(0)" onclick="onDriver(1)">Automat</a>
 	</nav>
 
-	<section id="graph">
+	<section>
 		<canvas id="plot" width="800" height="400"></canvas>
 	</section>
 
-	<section id="tables">
+	<section>
 		<div id="temps" class="tabs"></div>
 		<div id="system" class="tabs"></div>
 		<div id="outdor" class="tabs"></div>
 	</section>
+
+	<footer id="toast"></footer>
 
 	</body>
 </html>

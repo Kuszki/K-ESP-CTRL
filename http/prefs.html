@@ -6,7 +6,7 @@
 		<meta name="Author" content='Łukasz "Kuszki" Dróżdż'>
 
 		<link rel="stylesheet" type="text/css" href="main.css"/>
-		<link rel="stylesheet" type="text/css" href="tabs.css"/>
+		<link rel="stylesheet" type="text/css" href="sets.css"/>
 
 		<title>Sterownik K-ESP-CTRL: Ustawienia</title>
 
@@ -32,22 +32,59 @@
 		<p>Urządzenie</p>
 		<a href="index.html">Status</a>
 		<a href="prefs.html">Ustawienia</a>
-		<a href="log.html">Historia</a>
-		<p>Sterowanie</p>
-		<a href="javascript:void(0)" onclick="onEnable(1)">Włącz</a>
-		<a href="javascript:void(0)" onclick="onEnable(0)">Wyłącz</a>
-		<a href="javascript:void(0)" onclick="onDriver(1)">Automat</a>
+		<a href="logs.html">Historia</a>
+		<p>Akcje</p>
+		<a href="javascript:void(0)" onclick="onSave()">Zapisz</a>
+		<a href="javascript:void(0)" onclick="onReset()">Resetuj</a>
+		<a href="javascript:void(0)" onclick="onDefault()">Domyślne</a>
 	</nav>
 
-	<section id="graph">
-		<canvas id="plot" width="800" height="400"></canvas>
-	</section>
-
-	<section id="tables">
-		<div id="temps" class="tabs"></div>
-		<div id="system" class="tabs"></div>
-		<div id="outdor" class="tabs"></div>
-	</section>
+	<section><form>
+		<p>Ustawienia sterownika</p>
+		<table>
+			<tr>
+				<td><label for="driver">Rodzaj sterowania</label></td>
+				<td><select id="driver" name="driver">
+					<option value="0">Ręczne</option>
+					<option value="1">Automatyczne</option>
+				</select></td>
+			</tr>
+			<tr>
+			<td><label for="target">Domyślna temperatura</label></td>
+			<td><input type="number" id="target" name="target" min="15" max="25"></td>
+			</tr>
+			<tr>
+			<td><label for="hplus">Histereza w górę</label></td>
+			<td><input type="number" id="hplus" name="hplus" min="1" max="5"></td>
+			</tr>
+			<tr>
+			<td><label for="hminus">Histereza w dół</label></td>
+			<td><input type="number" id="hminus" name="hminus" min="1" max="5"></td>
+			</tr>
+		</table>
+		<p>Ustawienia wykresu</p>
+		<table>
+			<tr>
+			<td><label for="psize">Liczba pozycji w historii</label></td>
+			<td><input type="number" id="psize" name="psize" min="0" max="5"></td>
+			</tr>
+			<tr>
+			<td><label for="pdays">Liczba dni historii</label></td>
+			<td><input type="number" id="pdays" name="pdays" min="0" max="5"></td>
+			</tr>
+		</table>
+		<p>Ustawienia historii</p>
+		<table>
+			<tr>
+			<td><label for="lsize">Liczba pozycji w historii</label></td>
+			<td><input type="number" id="lsize" name="lsize" min="0" max="5"></td>
+			</tr>
+			<tr>
+			<td><label for="ldays">Liczba dni historii</label></td>
+			<td><input type="number" id="ldays" name="ldays" min="0" max="5"></td>
+			</tr>
+		</table>
+	</section></form>
 
 	</body>
 </html>

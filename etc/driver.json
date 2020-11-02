@@ -1,18 +1,18 @@
 {
-	"timers":
-	{
-		"plot":	30,
-		"loop":	10
-	},
 	"history":
+	{
+		"size":	25,
+		"age":	259200
+	},
+	"logs":
 	{
 		"size":	25,
 		"age":	259200
 	},
 	"status":
 	{
-		"driver": false,
-		"power": false
+		"driver": 0,
+		"target": 19
 	},
 	"hyster":
 	{

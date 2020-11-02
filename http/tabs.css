@@ -15,11 +15,6 @@ table
 	width: 100%;
 }
 
-th, td
-{
-	padding: 10px;
-}
-
 table td, table th
 {
 	border: 1px solid black;
