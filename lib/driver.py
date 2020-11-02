@@ -139,16 +139,20 @@ class driver:
 
 		power = bool(int(p));
 
-		self.on_log('pwr', power)
-		self.power = power
-		self.out.value(not power)
+		if self.power != power:
+
+			self.on_log('pwr', power)
+			self.power = power
+			self.out.value(not power)
 
 	def set_driver(self, p):
 
 		driver = int(p)
 
-		self.on_log('drv', driver)
-		self.driver = driver
+		if self.driver != driver:
+
+			self.on_log('drv', driver)
+			self.driver = driver
 
 	def set_temps(self, v):
 
@@ -210,6 +214,8 @@ class driver:
 
 	def get_drive(self):
 
+		if self.curr_temp == None: return self.power
+
 		tplus = self.tar_temp + self.hplus
 		tminus = self.tar_temp - self.hminus
 
@@ -218,10 +224,10 @@ class driver:
 
 		return self.power
 
-	def get_schedule(self):
+	def on_schedule(self):
 
 		# TODO implement me
-		return None
+		return self.driver, self.power, self.tar_temp
 
 	def on_loop(self, tim):
 
@@ -237,22 +243,22 @@ class driver:
 			self.t_save = now
 
 		if self.driver != 0:
-			driver, power, target = on_schedule()
+			driver, power, target = self.on_schedule()
 
 		if self.driver != driver:
 			self.set_driver(driver)
 
 		if self.driver == 1:
-			power = on_drive()
+			power = self.get_drive()
 
 		if self.power != power:
 			self.set_power(power)
 
 		gc.collect()
 
-
-	def on_log(self, cat, stat):
+	def on_log(self, cat, stat = None):
 
 		if cat in self.LOGS and stat in self.LOGS[cat]:
 			self.save_logs(self.LOGS[cat][stat])
+		else: self.save_logs(cat)
 

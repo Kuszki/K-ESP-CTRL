@@ -15,6 +15,7 @@ body > nav
 
 	float: left;
 	padding: 10px;
+	max-width: 15%;
 }
 
 body > nav > *
@@ -36,8 +37,8 @@ body > nav > a
 
 body > nav > p
 {
-	padding-left: unset;
-	padding-bottom: unset;
+	padding-left: 0;
+	padding-bottom: 0;
 }
 
 body > nav > a:hover
@@ -93,7 +94,7 @@ section
 	margin-left: auto;
 	margin-right: auto;
 
-	max-width: 1200px;
+	max-width: 60%;
 	padding: 10px;
 
 	text-align: justify;

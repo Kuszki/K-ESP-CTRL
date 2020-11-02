@@ -40,7 +40,7 @@ function onLoad()
 	$.when($.getJSON('temps.json', onTemps))
 	.done(function()
 	{
-		//setInterval($.getJSON, 10000, 'temps.json', onTemps);
+		setInterval($.getJSON, 10000, 'temps.json', onTemps);
 	})
 	.fail(function()
 	{
@@ -50,7 +50,7 @@ function onLoad()
 	$.when($.getJSON('system.json', onSystem))
 	.done(function()
 	{
-		//setInterval($.getJSON, 10000, 'system.json', onSystem);
+		setInterval($.getJSON, 10000, 'system.json', onSystem);
 	})
 	.fail(function()
 	{
@@ -60,7 +60,7 @@ function onLoad()
 	$.when($.getJSON('outdor.json', onOutdor))
 	.done(function()
 	{
-		//setInterval($.getJSON, 10000, 'outdor.json', onOutdor);
+		setInterval($.getJSON, 10000, 'outdor.json', onOutdor);
 	})
 	.fail(function()
 	{

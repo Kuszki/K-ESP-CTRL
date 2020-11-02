@@ -1,8 +1,5 @@
 open ttyUSB0
 
-put main.py
-put boot.py
-
 cd /lib
 mrm .*
 
@@ -27,6 +24,7 @@ put http/logs.html
 
 put http/index.js
 put http/toast.js
+put http/logs.js
 
 put http/main.css
 put http/tabs.css
@@ -35,3 +33,6 @@ put http/toast.css
 
 put etc/driver.json
 put etc/plot.json
+
+put main.py
+put boot.py

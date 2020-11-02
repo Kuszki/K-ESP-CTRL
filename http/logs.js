@@ -3,7 +3,7 @@ function onLoad()
 	$.when($.getJSON('log.json', onLogs))
 	.done(function(config, data)
 	{
-		//setInterval($.getJSON, 10000, 'log.json', onLogs);
+		setInterval($.getJSON, 10000, 'log.json', onLogs);
 	})
 	.fail(function()
 	{

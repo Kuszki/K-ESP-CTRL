@@ -46,7 +46,8 @@ class server:
 
 	def recv(self, s):
 
-		slite, par = self.parse(str(s.recv(512)));
+		try: slite, par = self.parse(str(s.recv(512)))
+		except: slite = None; par = dict()
 
 		if slite in self.callback:
 			tmp = self.callback[slite](par)

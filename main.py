@@ -1,10 +1,11 @@
-import time, json, micropython, machine
+import time, json, micropython
 
+from machine import Pin, Timer
 from driver import driver
 from server import server
 
-p = machine.Pin(2, machine.Pin.OUT)
-t = machine.Timer(-1)
+p = Pin(2, Pin.OUT)
+t = Timer(-1)
 
 d = driver(p)
 s = server(80)
@@ -16,6 +17,7 @@ s.set_slite('outdor.json', lambda v: json.dumps(d.get_envinfo()))
 s.set_callback('config', lambda v: d.set_params(v))
 s.set_callback('tempup', lambda v: d.set_temps(v))
 
-t.init(period=10000, mode=machine.Timer.PERIODIC, callback=lambda t: micropython.schedule(d.on_loop, t))
+cb = lambda t: micropython.schedule(d.on_loop, t)
+t.init(period=10000, mode=Timer.PERIODIC, callback=cb)
 
 s.start()
