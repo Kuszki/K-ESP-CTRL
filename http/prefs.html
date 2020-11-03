@@ -66,23 +66,34 @@
 			<p>Ustawienia wykresu</p>
 			<table>
 				<tr>
-					<td><label for="psize">Liczba pozycji w historii</label></td>
-					<td><input type="number" id="psize" name="psize" min="0" max="5"></td>
+					<td><label for="psize">Liczba pozycji na wykresie</label></td>
+					<td><input type="number" id="psize" name="psize" min="5" max="50"></td>
 				</tr>
 				<tr>
-					<td><label for="pdays">Liczba dni historii</label></td>
-					<td><input type="number" id="pdays" name="pdays" min="0" max="5"></td>
+					<td><label for="pdays">Liczba dni na wykresie</label></td>
+					<td><input type="number" id="pdays" name="pdays" min="1" max="5"></td>
 				</tr>
 			</table>
 			<p>Ustawienia historii</p>
 			<table>
 				<tr>
 					<td><label for="lsize">Liczba pozycji w historii</label></td>
-					<td><input type="number" id="lsize" name="lsize" min="0" max="5"></td>
+					<td><input type="number" id="lsize" name="lsize" min="5" max="50"></td>
 				</tr>
 				<tr>
 					<td><label for="ldays">Liczba dni historii</label></td>
-					<td><input type="number" id="ldays" name="ldays" min="0" max="5"></td>
+					<td><input type="number" id="ldays" name="ldays" min="5" max="50"></td>
+				</tr>
+			</table>
+			<p>Pozostałe ustawienia</p>
+			<table>
+				<tr>
+					<td><label for="waref">Czas odświeżania pogody</label></td>
+					<td><input type="number" id="waref" name="waref" min="30" max="360"></td>
+				</tr>
+				<tr>
+					<td><label for="walnk">Token openweathermap.org</label></td>
+					<td><input type="text" id="walnk" name="walnk" min="30" max="360"></td>
 				</tr>
 			</table>
 		</section></form>

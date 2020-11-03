@@ -1,9 +1,8 @@
+var colors = ['tomato', 'olive', 'teal', 'peru', 'coral', 'azure', 'blue'];
 var set_locked = false;
 
 function onLoad()
 {
-
-	var colors = ['red', 'blue', 'green'];
 
 	$.when
 	(
@@ -19,7 +18,7 @@ function onLoad()
 
 		for (i = 0; i < data[0].length; ++i)
 		{
-			data[0][i].borderColor = colors[i];
+			data[0][i].borderColor = pl_colors[i];
 			data[0][i].fill = false;
 
 			for (j = 0; j < data[0][i].data.length; ++j)

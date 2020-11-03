@@ -1,7 +1,8 @@
 table
 {
 	border: 0;
-	width: 600px;
+	width: 700px;
+	max-width: 60%;
 	margin-left: 50px;
 	margin-right: auto;
 	text-align: left;
@@ -15,5 +16,5 @@ td > *
 table tr td:first-child,
 table tr th:first-child
 {
-	width: 65%;
+	width: 55%;
 }

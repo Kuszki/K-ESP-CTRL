@@ -42,7 +42,10 @@ class driver:
 		self.lsize = settings['logs']['size']
 		self.lage = settings['logs']['age']
 
-		self.t_save = 0
+		self.wtref = settings['outdor']['ref']
+
+		self.tp_save = 0
+		self.tl_save = 0
 
 		self.temperatures = dict()
 		self.schedules = dict()
@@ -78,41 +81,38 @@ class driver:
 		with open('/etc/driver.json', 'w') as f:
 			json.dump(conf, f)
 
-	def save_history(self):
+	def save_history(self, t):
 
 		try: hist = json.load(open('/var/history.json', 'r'))
 		except: hist = list()
 
+		p_dt = self.page / self.psize
 		now = time.time()
 		cur = set()
 
 		for v in hist:
+
+			if v['label'] in t and now - v['last'] >= p_dt:
+				v['data'].append({ 't': now, 'y': t[v['label']] })
+				v['last'] = now
+
 			for h in v['data']:
 				if now - h['t'] >= self.page:
 					v['data'].remove(h)
 
-		for v in hist:
-			while len(v['data']) >= self.psize:
+			while len(v['data']) > self.psize:
 				v['data'].pop(0)
 
-		for v in hist:
-			if not len(v['data']):
-				hist.remove(v)
+			if not len(v['data']): hist.remove(v)
+			else: cur.add(v['label'])
 
-		for v in hist:
-			cur.add(v['label'])
-
-		for k, v in self.temperatures.items():
-			if not k in cur: hist.append( \
+		for k, v in t.items():
+			if not k in cur:
+				hist.append( \
 				{
-					'label': k,
-					'data': [ {'t': now, 'y': v} ]
+					'label': k, 'last': now,
+					'data': [{'t': now, 'y': v}]
 				})
-			else:
-				for h in hist:
-					if h['label'] == k:
-						h['data'].append( \
-							{ 't': now, 'y': v })
 
 		with open('/var/history.json', 'w') as f:
 			json.dump(hist, f)
@@ -130,7 +130,7 @@ class driver:
 
 		while len(logs) >= self.lsize: logs.pop(0)
 
-		logs.append({ 't': time.time(), 'msg': msg })
+		logs.append({ 't': now, 'msg': msg })
 
 		with open('/var/log.json', 'w') as f:
 			json.dump(logs, f)
@@ -161,6 +161,11 @@ class driver:
 		self.temperatures.update(v)
 		self.curr_temp = sum(self.temperatures.values())
 		self.curr_temp /= len(self.temperatures)
+
+		v['Zmierzona'] = self.curr_temp
+		v['Otoczenie'] = self.out_temp
+
+		self.save_history(v)
 
 	def set_params(self, v):
 
@@ -229,18 +234,46 @@ class driver:
 		# TODO implement me
 		return self.driver, self.power, self.tar_temp
 
+	def on_hist(self, now):
+
+		try: hist = json.load(open('/var/history.json', 'r'))
+		except: hist = list()
+
+		for v in hist:
+
+			for h in v['data']:
+				if now - h['t'] >= self.page:
+					v['data'].remove(h)
+
+			while len(v['data']) > self.psize:
+				v['data'].pop(0)
+
+			if not len(v['data']): hist.remove(v)
+
+		with open('/var/history.json', 'w') as f:
+			json.dump(hist, f)
+
+	def on_logs(self, now):
+
+		try: logs = json.load(open('/var/log.json', 'r'))
+		except: logs = list()
+
+		for v in logs:
+			if now - v['t'] >= self.lage:
+				logs.remove(v)
+
+		while len(logs) > self.lsize: logs.pop(0)
+
+		with open('/var/log.json', 'w') as f:
+			json.dump(logs, f)
+
 	def on_loop(self, tim):
 
-		p_dt = self.page / self.psize
 		now = time.time()
 
 		driver = self.driver
 		power = self.power
 		target = self.tar_temp
-
-		if now - self.t_save >= p_dt:
-			self.save_history()
-			self.t_save = now
 
 		if self.driver != 0:
 			driver, power, target = self.on_schedule()
@@ -253,6 +286,14 @@ class driver:
 
 		if self.power != power:
 			self.set_power(power)
+
+		if now - self.tp_save >= self.page:
+			self.on_hist(now)
+			self.t_save = now
+
+		if now - self.tl_save >= self.lage:
+			self.on_logs(now)
+			self.t_save = now
 
 		gc.collect()
 

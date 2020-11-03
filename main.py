@@ -21,3 +21,5 @@ cb = lambda t: micropython.schedule(d.on_loop, t)
 t.init(period=10000, mode=Timer.PERIODIC, callback=cb)
 
 s.start()
+
+# http://api.openweathermap.org/data/2.5/weather?q=B%C4%99dzin&units=metric&appid=c6b8836a613969bab6d312b2182a6522&lang=pl
