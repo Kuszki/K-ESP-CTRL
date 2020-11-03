@@ -1,7 +1,7 @@
 function onLoad()
 {
 	$.when($.getJSON('log.json', onLogs))
-	.done(function(config, data)
+	.done(function()
 	{
 		setInterval($.getJSON, 10000, 'log.json', onLogs);
 	})
@@ -13,7 +13,7 @@ function onLoad()
 
 function onLogs(data)
 {
-	var off = (new Date(2000, 0, 1)) - (new Date(0));
+	var off = Date.UTC(2000, 0, 1);
 	var table = '<table>';
 
 	for (const k in data)
@@ -29,5 +29,9 @@ function onLogs(data)
 
 function onSave()
 {
-	// TODO
+	var f = document.getElementById('log');
+	var txt = f.innerText;
+
+	var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(txt);
+	var newWindow = window.open(uriContent, 'k-esp-ctrl-log.txt');
 }

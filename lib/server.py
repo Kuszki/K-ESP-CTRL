@@ -4,6 +4,15 @@ import socket
 
 class server:
 
+	STR_MIME = \
+	{
+		'.html': 'text/html',
+		'.css': 'text/css',
+		'.js': 'text/javascript',
+		'.ico': 'image/png',
+		'.json': 'application/json'
+	}
+
 	STR_OK = 'HTTP/1.1 200 OK\n'
 	STR_NF = 'HTTP/1.1 404 NA\n'
 	STR_CL = 'Connection: close\n\n'
@@ -62,6 +71,7 @@ class server:
 		else: hed = self.STR_NF
 
 		s.sendall(str(hed))
+		s.sendall(self.mime(slite))
 		s.sendall(self.STR_CL)
 
 		if con != None:
@@ -103,6 +113,9 @@ class server:
 		try: return open('/http/%s' % path, 'r').read()
 		except: con = None
 
+		try: return open('/src/%s' % path, 'r').read()
+		except: con = None
+
 		try: return open('/etc/%s' % path, 'r').read()
 		except: con = None
 
@@ -110,3 +123,12 @@ class server:
 		except: con = None
 
 		return con;
+
+	def mime(self, path):
+
+		mime = 'text/plain'
+
+		for k, v in self.STR_MIME.items():
+			if path.endswith(k): mime = v; break
+
+		return 'Content-Type: %s\n' % mime

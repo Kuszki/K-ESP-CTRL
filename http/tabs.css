@@ -7,6 +7,12 @@ div.tabs
 	box-sizing: border-box;
 }
 
+center
+{
+	margin-top: 250px;
+	margin-bottom: 250px;
+}
+
 table
 {
 	border-collapse: collapse;

@@ -12,6 +12,9 @@ mrm .*
 cd /var
 mrm .*
 
+cd /src
+mrm .*
+
 cd /
 mrm .*
 
@@ -22,15 +25,19 @@ put http/index.html
 put http/prefs.html
 put http/logs.html
 
-put http/index.js
-put http/toast.js
-put http/logs.js
-
 put http/main.css
 put http/tabs.css
 put http/sets.css
 put http/toast.css
 
+put http/favicon.ico
+
+put src/index.js
+put src/prefs.js
+put src/logs.js
+put src/toast.js
+
+put etc/default.json
 put etc/driver.json
 put etc/plot.json
 

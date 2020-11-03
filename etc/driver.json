@@ -1,8 +1,8 @@
 {
 	"history":
 	{
-		"size":	25,
-		"age":	259200
+		"size":	150,
+		"age":	86400
 	},
 	"logs":
 	{
@@ -11,17 +11,17 @@
 	},
 	"status":
 	{
-		"driver": 0,
-		"target": 19
+		"driver":	0,
+		"target":	19
 	},
 	"hyster":
 	{
-		"plus": 1,
-		"minus": 2
+		"plus":	1,
+		"minus":	2
 	},
 	"outdor":
 	{
-		"ref": 60,
-		"req": ""
+		"ref":	3600,
+		"tok":	""
 	}
 }

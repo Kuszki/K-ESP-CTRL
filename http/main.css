@@ -1,17 +1,14 @@
 body
 {
-	margin-top: 75px;
-	margin-bottom: 25px;
-	background-color: white;
-	color: black;
+	margin-top: 85px;
 }
 
 body > nav
 {
 	position: fixed;
 
-	left: 10;
-	top: 75;
+	left: 10px;
+	top: 85px;
 
 	float: left;
 	padding: 10px;
@@ -53,8 +50,8 @@ header
 	left: 0;
 	top: 0;
 
-	min-width: 100%;
-	min-height: 20px;
+	width: 100%;
+	height: 75px;
 
 	background-color: lightyellow;
 }

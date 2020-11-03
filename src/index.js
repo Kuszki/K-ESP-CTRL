@@ -1,4 +1,4 @@
-var colors = ['tomato', 'olive', 'teal', 'peru', 'coral', 'azure', 'blue'];
+var pl_colors = ['tomato', 'olive', 'teal', 'peru', 'coral', 'azure', 'blue'];
 var set_locked = false;
 
 function onLoad()
@@ -11,10 +11,11 @@ function onLoad()
 	)
 	.done(function(config, data)
 	{
-		var off = (new Date(2000, 0, 1)) - (new Date(0));
+		var off = Date.UTC(2000, 0, 1);
 
 		ctx = $('#plot')[0].getContext('2d');
 		plot = new Chart(ctx, config[0]);
+		moment.locale('pl');
 
 		for (i = 0; i < data[0].length; ++i)
 		{
@@ -24,7 +25,7 @@ function onLoad()
 			for (j = 0; j < data[0][i].data.length; ++j)
 			{
 				var old = data[0][i].data[j]['t'] * 1000;
-				data[0][i].data[j]['t'] = old + off;
+				data[0][i].data[j]['t'] = new Date(old + off);
 			}
 		}
 
@@ -33,7 +34,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#graph').html('<center>Błąd w ładowaniu danych</center>');
+		$('#graph').html('<center>Brak danych do załadowania</center>');
 	});
 
 	$.when($.getJSON('temps.json', onTemps))
@@ -73,7 +74,7 @@ function onTemps(data)
 
 	for (const k in data)
 	{
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`
+		table += `<tr><td>${k}</td><td>${data[k]} ℃</td></tr>`;
 	}
 
 	$('#temps').html(table + '</table>');
@@ -85,7 +86,7 @@ function onSystem(data)
 
 	for (const k in data)
 	{
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`
+		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`;
 	}
 
 	$('#system').html(table + '</table>');
@@ -97,7 +98,7 @@ function onOutdor(data)
 
 	for (const k in data)
 	{
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`
+		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`;
 	}
 
 	$('#outdor').html(table + '</table>');
@@ -105,7 +106,8 @@ function onOutdor(data)
 
 function onEnable(param)
 {
-	if (set_locked) return; else set_locked = false;
+	if (set_locked) return;
+	else set_locked = true;
 
 	showToast("Łączenie z urządzeniem...", 0);
 
@@ -122,7 +124,8 @@ function onEnable(param)
 
 function onDriver(param)
 {
-	if (set_locked) return; else set_locked = false;
+	if (set_locked) return;
+	else set_locked = true;
 
 	showToast("Łączenie z urządzeniem...", 0);
 

@@ -1,0 +1,12 @@
+{
+	"driver":	1,
+	"target":	19,
+	"hplus":	1,
+	"hminus":	2,
+	"psize":	150,
+	"page":	3,
+	"lsize":	50,
+	"lage":	5,
+	"wtref":	60,
+	"wtok":	""
+}

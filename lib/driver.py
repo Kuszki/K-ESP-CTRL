@@ -43,6 +43,7 @@ class driver:
 		self.lage = settings['logs']['age']
 
 		self.wtref = settings['outdor']['ref']
+		self.wtok = settings['outdor']['tok']
 
 		self.tp_save = 0
 		self.tl_save = 0
@@ -69,7 +70,7 @@ class driver:
 			"status":
 			{
 				"driver": self.driver,
-				"target": self.tar_tmp
+				"target": self.tar_temp
 			},
 			"hyster":
 			{
@@ -178,6 +179,24 @@ class driver:
 		if 'target' in v:
 			self.tar_temp = float(v['target'])
 
+		if 'psize' in v:
+			self.psize = int(v['psize'])
+
+		if 'page' in v:
+			self.page = int(v['page']) * 86400
+
+		if 'lsize' in v:
+			self.lsize = int(v['lsize'])
+
+		if 'lage' in v:
+			self.lage = int(v['lage']) * 86400
+
+		if 'wtref' in v:
+			self.wtref = int(v['wtref']) * 60
+
+		if 'wtok' in v:
+			self.wtok = str(v['wtok'])
+
 		if 'power' in v:
 			self.set_driver(int(0))
 			self.set_power(v['power'])
@@ -192,7 +211,7 @@ class driver:
 
 	def get_temps(self):
 
-		tmp = { 'Zmierzona': self.curr_temp }
+		tmp = { 'Obliczona': self.curr_temp }
 		tmp.update(self.temperatures)
 
 		return tmp
@@ -203,7 +222,7 @@ class driver:
 		{
 			'Status': self.POWER[bool(self.power)],
 			'Sterowanie': self.DRIVER[self.driver],
-			'Temperatura wody': self.ht_temp
+			'Temperatura wody': '%s %s' % (self.ht_temp, '℃')
 		}
 
 	def get_envinfo(self):
@@ -214,7 +233,24 @@ class driver:
 		{
 			'Godzina (UTC)': '%d:%02d:%02d' % (t[3], t[4], t[5]),
 			'Data (UTC)': '%02d.%02d.%d' % (t[2], t[1], t[0]),
-			'Temperatura otoczenia': self.out_temp
+			'Temperatura zewnętrzna': '%s %s' % (self.out_temp, '℃')
+		}
+
+	def get_params(self):
+
+		return \
+		{
+			"driver": self.driver,
+			"target": self.tar_temp,
+			"hplus": self.hplus,
+			"hminus": self.hminus,
+			"psize": self.psize,
+			"lsize": self.lsize,
+			"wtok": self.wtok,
+
+			"page": int(self.page / 86400),
+			"lage": int(self.lage / 86400),
+			"wtref": int(self.wtref / 60)
 		}
 
 	def get_drive(self):

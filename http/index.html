@@ -18,12 +18,7 @@
 		<script src="index.js"></script>
 		<script src="toast.js"></script>
 
-		<script>
-			var plot = null;
-
-			moment.locale('pl');
-			$(document).ready(onLoad);
-		</script>
+		<script> $(document).ready(onLoad); </script>
 
 	</head>
 	<body>
@@ -46,7 +41,7 @@
 			<a href="javascript:void(0)" onclick="onDriver(1)">Automat</a>
 		</nav>
 
-		<section>
+		<section id="graph">
 			<canvas id="plot"></canvas>
 		</section>
 
