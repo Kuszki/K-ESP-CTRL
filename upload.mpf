@@ -20,6 +20,7 @@ mrm .*
 
 putc lib/server.py
 putc lib/driver.py
+putc lib/requests.py
 
 put http/index.html
 put http/prefs.html

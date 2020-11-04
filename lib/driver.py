@@ -1,8 +1,10 @@
 # coding=UTF-8
 
-import time, json, gc, machine
+import time, json, requests
 
 class driver:
+
+	REQ = 'http://api.openweathermap.org/data/2.5/weather?units=metric&lang=pl&q=%s&appid=%s'
 
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
 	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne', 2: 'Harmonogram' }
@@ -42,45 +44,23 @@ class driver:
 		self.lsize = settings['logs']['size']
 		self.lage = settings['logs']['age']
 
-		self.wtref = settings['outdor']['ref']
-		self.wtok = settings['outdor']['tok']
-
-		self.tp_save = 0
-		self.tl_save = 0
+		self.wtref = settings['outdor']['time']
+		self.wtok = settings['outdor']['token']
+		self.wpla = settings['outdor']['place']
 
 		self.temperatures = dict()
 		self.schedules = dict()
+
+		self.tp_save = 0
+		self.tl_save = 0
+		self.tw_save = 0
 
 		self.out = out
 
 	def save_settings(self):
 
-		conf = \
-		{
-			"history":
-			{
-				"size": self.psize,
-				"age": self.page
-			},
-			"logs":
-			{
-				"size": self.lsize,
-				"age": self.lage
-			},
-			"status":
-			{
-				"driver": self.driver,
-				"target": self.tar_temp
-			},
-			"hyster":
-			{
-				"plus": self.hplus,
-				"minus": self.hminus
-			}
-		}
-
 		with open('/etc/driver.json', 'w') as f:
-			json.dump(conf, f)
+			json.dump(self.get_conf(), f)
 
 	def save_history(self, t):
 
@@ -197,6 +177,9 @@ class driver:
 		if 'wtok' in v:
 			self.wtok = str(v['wtok'])
 
+		if 'wpla' in v:
+			self.wpla = str(v['wpla'])
+
 		if 'power' in v:
 			self.set_driver(int(0))
 			self.set_power(v['power'])
@@ -240,17 +223,50 @@ class driver:
 
 		return \
 		{
-			"driver": self.driver,
-			"target": self.tar_temp,
-			"hplus": self.hplus,
-			"hminus": self.hminus,
-			"psize": self.psize,
-			"lsize": self.lsize,
-			"wtok": self.wtok,
+			'driver': self.driver,
+			'target': self.tar_temp,
+			'hplus': self.hplus,
+			'hminus': self.hminus,
+			'psize': self.psize,
+			'lsize': self.lsize,
+			'wtok': self.wtok,
+			'wpla': self.wpla,
 
-			"page": int(self.page / 86400),
-			"lage": int(self.lage / 86400),
-			"wtref": int(self.wtref / 60)
+			'page': int(self.page / 86400),
+			'lage': int(self.lage / 86400),
+			'wtref': int(self.wtref / 60)
+		}
+
+	def get_conf(self):
+
+		return \
+		{
+			'history':
+			{
+				'size': self.psize,
+				'age': self.page
+			},
+			'logs':
+			{
+				'size': self.lsize,
+				'age': self.lage
+			},
+			'status':
+			{
+				'driver': self.driver,
+				'target': self.tar_temp
+			},
+			'hyster':
+			{
+				'plus': self.hplus,
+				'minus': self.hminus
+			},
+			"outdor":
+			{
+				"time": self.wtref,
+				"token": self.wtok,
+				"place": self.wpla
+			}
 		}
 
 	def get_drive(self):
@@ -303,7 +319,7 @@ class driver:
 		with open('/var/log.json', 'w') as f:
 			json.dump(logs, f)
 
-	def on_loop(self, tim):
+	def on_loop(self):
 
 		now = time.time()
 
@@ -325,13 +341,26 @@ class driver:
 
 		if now - self.tp_save >= self.page:
 			self.on_hist(now)
-			self.t_save = now
+			self.tp_save = now
 
 		if now - self.tl_save >= self.lage:
 			self.on_logs(now)
-			self.t_save = now
+			self.tl_save = now
 
-		gc.collect()
+		if now - self.tw_save >= self.wtref:
+			self.on_outdor()
+			self.tw_save = now
+
+	def on_outdor(self):
+
+		if not self.wtok or not self.wpla: return None;
+
+		try:
+			req = self.REQ % (self.wpla, self.wtok)
+			ans = requests.get(req).json()
+
+			self.out_temp = ans['main']['temp']
+		except: return None
 
 	def on_log(self, cat, stat = None):
 

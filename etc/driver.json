@@ -21,7 +21,8 @@
 	},
 	"outdor":
 	{
-		"ref":	3600,
-		"tok":	""
+		"time":	3600,
+		"token":	"",
+		"place":	""
 	}
 }

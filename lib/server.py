@@ -6,16 +6,16 @@ class server:
 
 	STR_MIME = \
 	{
-		'.html': 'text/html',
-		'.css': 'text/css',
-		'.js': 'text/javascript',
-		'.ico': 'image/png',
-		'.json': 'application/json'
+		'.html': b'text/html',
+		'.css': b'text/css',
+		'.js': b'text/javascript',
+		'.ico': b'image/png',
+		'.json': b'application/json'
 	}
 
-	STR_OK = 'HTTP/1.1 200 OK\n'
-	STR_NF = 'HTTP/1.1 404 NA\n'
-	STR_CL = 'Connection: close\n\n'
+	STR_OK = b'HTTP/1.1 200 OK\r\n'
+	STR_NF = b'HTTP/1.1 404 NA\r\n'
+	STR_CL = b'Connection: close\r\n\r\n'
 
 	def __init__(self, port = 80):
 
@@ -55,8 +55,8 @@ class server:
 
 	def recv(self, s):
 
-		try: slite, par = self.parse(str(s.recv(512)))
-		except: slite = None; par = dict()
+		try: slite, par = self.parse(s.recv(512).decode())
+		except: slite = str(); par = dict()
 
 		if slite in self.callback:
 			tmp = self.callback[slite](par)
@@ -70,43 +70,81 @@ class server:
 			hed = self.STR_OK
 		else: hed = self.STR_NF
 
-		s.sendall(str(hed))
-		s.sendall(self.mime(slite))
-		s.sendall(self.STR_CL)
+		try:
 
-		if con != None:
-			try: s.sendall(con)
-			except: s.sendall('\n')
+			s.sendall(hed)
+			s.sendall(self.mime(slite))
+			s.sendall(self.STR_CL)
 
-		s.close()
+			if con != None:
+				s.sendall(con.encode())
+
+		finally:
+
+			s.close()
 
 	def parse(self, req):
 
 		a = req.find(' /') + 2
 		b = req.find(' HTTP')
-		req = req[a:b]
 
-		vlist = dict()
-		slite = req
+		if a == -1 or b == -1 or a >= b:
+			return str(), dict()
+		else: req = req[a:b]
 
 		par = req.find('?')
+		d = self.unquote
+		vlist = dict()
 
 		if par != -1:
 
-			slite = req[0:par]
+			slite = d(req[0:par])
 			req = req[par+1:len(req)]
 
 			for p in req.split('&'):
+
 				if p.find('=') != -1:
+
 					i = p.split('=')
-					vlist[i[0]] = i[1]
+					vlist[d(i[0])] = d(i[1])
+
 				else:
-					vlist[p] = None
+
+					vlist[d(p)] = None
+
+		else: slite = d(req)
 
 		if slite == '':
 			slite = 'index.html'
 
 		return slite, vlist
+
+	def unquote(self, string):
+
+		if not string: return str()
+		if not '%' in string: return string
+
+		if isinstance(string, str):
+			string = string.encode()
+
+		bits = string.split(b'%')
+		res = [ bits[0] ]
+
+		for s in bits[1:]:
+
+			try:
+
+				char = bytes([int(s[:2], 16)])
+				res.append(char)
+				res.append(s[2:])
+
+			except:
+
+				res.append(b'%')
+				res.append(s)
+
+		return b''.join(res).decode()
+
 
 	def slite(self, path):
 
@@ -126,9 +164,9 @@ class server:
 
 	def mime(self, path):
 
-		mime = 'text/plain'
+		mime = b'text/plain'
 
 		for k, v in self.STR_MIME.items():
 			if path.endswith(k): mime = v; break
 
-		return 'Content-Type: %s\n' % mime
+		return b'Content-Type: %s\n' % mime

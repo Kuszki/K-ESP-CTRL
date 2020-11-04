@@ -1,5 +1,7 @@
 div.tabs
 {
+	text-align: center;
+
 	padding: 10px;
 	float: left;
 	width: 33.3%;

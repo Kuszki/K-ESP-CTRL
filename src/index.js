@@ -44,7 +44,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#temps').html('<center>Błąd w ładowaniu danych</center>');
+		$('#temps').html('Błąd w ładowaniu danych');
 	});
 
 	$.when($.getJSON('system.json', onSystem))
@@ -54,7 +54,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#system').html('<center>Błąd w ładowaniu danych</center>');
+		$('#system').html('Błąd w ładowaniu danych');
 	});
 
 	$.when($.getJSON('outdor.json', onOutdor))
@@ -64,7 +64,7 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		$('#outdor').html('<center>Błąd w ładowaniu danych</center>');
+		$('#outdor').html('Błąd w ładowaniu danych');
 	});
 }
 
