@@ -7,7 +7,7 @@ class driver:
 	REQ = 'http://api.openweathermap.org/data/2.5/weather?units=metric&lang=pl&q=%s&appid=%s'
 
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
-	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne', 2: 'Harmonogram' }
+	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne' }
 
 	LOGS = \
 	{
@@ -19,8 +19,7 @@ class driver:
 		'drv': \
 		{
 			0: 'Ustawiono sterowanie ręczne',
-			1: 'Ustawiono sterowanie automatyczne',
-			2: 'Ustalono harmonogram sterowania'
+			1: 'Ustawiono sterowanie automatyczne'
 		}
 	}
 
