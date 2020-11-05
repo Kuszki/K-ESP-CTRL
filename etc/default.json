@@ -1,6 +1,7 @@
 {
 	"driver":	1,
 	"target":	19,
+	"funct":	0,
 	"hplus":	1,
 	"hminus":	2,
 	"psize":	150,

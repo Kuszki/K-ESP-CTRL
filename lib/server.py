@@ -56,7 +56,7 @@ class server:
 	def recv(self, s):
 
 		try: slite, par = self.parse(s.recv(512).decode())
-		except: slite = str(); par = dict()
+		except: s.close(); return
 
 		if slite in self.callback:
 			tmp = self.callback[slite](par)
@@ -85,14 +85,14 @@ class server:
 
 	def parse(self, req):
 
-		a = req.find(' /') + 2
-		b = req.find(' HTTP')
+		a = req.find('GET /') + 5
+		b = req.find(' HTTP', a)
 
 		if a == -1 or b == -1 or a >= b:
 			return str(), dict()
 		else: req = req[a:b]
 
-		par = req.find('?')
+		par = req.find('?', a-1, b)
 		d = self.unquote
 		vlist = dict()
 
@@ -164,9 +164,11 @@ class server:
 
 	def mime(self, path):
 
+		ct = b'Content-Type: %s\r\n'
 		mime = b'text/plain'
 
 		for k, v in self.STR_MIME.items():
-			if path.endswith(k): mime = v; break
+			if path.endswith(k):
+				mime = v; break
 
-		return b'Content-Type: %s\n' % mime
+		return ct % mime

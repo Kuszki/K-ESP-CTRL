@@ -35,6 +35,8 @@ class driver:
 
 		self.tar_temp = settings['status']['target']
 		self.driver = settings['status']['driver']
+		self.funct = settings['status']['funct']
+
 		self.hplus = settings['hyster']['plus']
 		self.hminus = settings['hyster']['minus']
 
@@ -72,6 +74,8 @@ class driver:
 		cur = set()
 
 		for v in hist:
+
+			if v['label'] == 'Obliczona': v['last'] = 0
 
 			if v['label'] in t and now - v['last'] >= p_dt:
 				v['data'].append({ 't': now, 'y': t[v['label']] })
@@ -140,11 +144,9 @@ class driver:
 		for k in v: v[k] = float(v[k])
 
 		self.temperatures.update(v)
-		self.curr_temp = sum(self.temperatures.values())
-		self.curr_temp /= len(self.temperatures)
+		self.curr_temp = self.get_calc()
 
-		v['Zmierzona'] = self.curr_temp
-		v['Otoczenie'] = self.out_temp
+		v['Obliczona'] = self.curr_temp
 
 		self.save_history(v)
 
@@ -179,6 +181,11 @@ class driver:
 
 		if 'wpla' in v:
 			self.wpla = str(v['wpla'])
+			self.tw_save = 0
+
+		if 'funct' in v:
+			self.funct = int(v['funct'])
+			self.curr_temp = self.get_calc()
 
 		if 'power' in v:
 			self.set_driver(int(0))
@@ -191,6 +198,25 @@ class driver:
 			self.save_settings()
 
 		return bool(len(v))
+
+	def get_calc(self):
+
+		if not len(self.temperatures): return None
+		elif self.funct == 0: t = self.temperatures.values()
+		else: t = sorted(self.temperatures.values())
+
+		l = len(self.temperatures)
+
+		if self.funct == 1:
+
+			i = (l - 1) // 2
+
+			if (l % 2): return t[i]
+			else: return (t[i] + t[i+1])/2
+
+		elif self.funct == 2: return t[-1]
+		elif self.funct == 3: return t[0]
+		else: return sum(t) / l
 
 	def get_temps(self):
 
@@ -225,6 +251,7 @@ class driver:
 		{
 			'driver': self.driver,
 			'target': self.tar_temp,
+			'funct': self.funct,
 			'hplus': self.hplus,
 			'hminus': self.hminus,
 			'psize': self.psize,
@@ -254,7 +281,8 @@ class driver:
 			'status':
 			{
 				'driver': self.driver,
-				'target': self.tar_temp
+				'target': self.tar_temp,
+				'funct': self.funct
 			},
 			'hyster':
 			{
@@ -353,14 +381,18 @@ class driver:
 
 	def on_outdor(self):
 
-		if not self.wtok or not self.wpla: return None;
+		if not self.wtok or not self.wpla:
+			self.out_temp = None; return
 
 		try:
-			req = self.REQ % (self.wpla, self.wtok)
-			ans = requests.get(req).json()
 
-			self.out_temp = ans['main']['temp']
-		except: return None
+			req = self.REQ % (self.wpla, self.wtok)
+			ans = requests.get(req).json()['main']['temp']
+
+			self.out_temp = ans
+			self.save_history({ 'Zewnętrzna': ans })
+
+		except: self.out_temp = None
 
 	def on_log(self, cat, stat = None):
 

@@ -47,7 +47,16 @@
 					<td><select id="driver" name="driver">
 						<option value="0">Ręczne</option>
 						<option value="1">Automatyczne</option>
-						<option value="1">Harmonogram</option>
+						<option value="2">Harmonogram</option>
+					</select></td>
+				</tr>
+				<tr>
+					<td><label for="funct">Sposób obliczeń</label></td>
+					<td><select id="funct" name="funct">
+						<option value="0">Średnia</option>
+						<option value="1">Mediana</option>
+						<option value="2">Maksimum</option>
+						<option value="3">Minimum</option>
 					</select></td>
 				</tr>
 				<tr>
@@ -85,14 +94,14 @@
 					<td><input type="number" id="lage" name="lage" min="1" max="10" required="true"></td>
 				</tr>
 			</table>
-			<p>Pozostałe ustawienia</p>
+			<p>Ustawienia pogody</p>
 			<table>
 				<tr>
 					<td><label for="wtref">Czas odświeżania pogody</label></td>
 					<td><input type="number" id="wtref" name="wtref" min="30" max="360" required="true"></td>
 				</tr>
 				<tr>
-					<td><label for="wpla">Miejscowość</label></td>
+					<td><label for="wpla">Lokalizacja</label></td>
 					<td><input type="text" id="wpla" name="wpla"></td>
 				</tr>
 				<tr>

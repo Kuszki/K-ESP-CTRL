@@ -12,7 +12,8 @@
 	"status":
 	{
 		"driver":	0,
-		"target":	19
+		"target":	19,
+		"funct": 0
 	},
 	"hyster":
 	{
