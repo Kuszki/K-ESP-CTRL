@@ -55,7 +55,7 @@ class server:
 
 	def recv(self, s):
 
-		try: slite, par = self.parse(s.recv(512).decode())
+		try: slite, par = self.parse(s.recv(1024).decode())
 		except: s.close(); return
 
 		if slite in self.callback:
@@ -66,7 +66,7 @@ class server:
 			con = self.slites[slite](par)
 		else: con = self.slite(slite);
 
-		if con != None or tmp == True:
+		if con != None or tmp:
 			hed = self.STR_OK
 		else: hed = self.STR_NF
 
@@ -77,7 +77,9 @@ class server:
 			s.sendall(self.STR_CL)
 
 			if con != None:
-				s.sendall(con.encode())
+				s.sendall(str(con).encode())
+			elif tmp != None:
+				s.sendall(str(tmp).encode())
 
 		finally:
 
@@ -88,18 +90,18 @@ class server:
 		a = req.find('GET /') + 5
 		b = req.find(' HTTP', a)
 
-		if a == -1 or b == -1 or a >= b:
+		if a == -1 or b == -1 or a > b:
 			return str(), dict()
 		else: req = req[a:b]
 
-		par = req.find('?', a-1, b)
+		par = req.find('?')
 		d = self.unquote
 		vlist = dict()
 
 		if par != -1:
 
 			slite = d(req[0:par])
-			req = req[par+1:len(req)]
+			req = req[par+1:]
 
 			for p in req.split('&'):
 
@@ -148,23 +150,29 @@ class server:
 
 	def slite(self, path):
 
-		try: return open('/http/%s' % path, 'r').read()
-		except: con = None
+		if path.endswith('.html'):
+			try: return open('/http/%s' % path, 'r').read()
+			except: return None
 
-		try: return open('/src/%s' % path, 'r').read()
-		except: con = None
+		elif path.endswith('.css'):
+			try: return open('/css/%s' % path, 'r').read()
+			except: return None
 
-		try: return open('/etc/%s' % path, 'r').read()
-		except: con = None
+		elif path.endswith('.js'):
+			try: return open('/src/%s' % path, 'r').read()
+			except: return None
 
-		try: return open('/var/%s' % path, 'r').read()
-		except: con = None
+		elif path.endswith('.json'):
+			try: return open('/etc/%s' % path, 'r').read()
+			except: return None
 
-		return con;
+		else:
+			try: return open('/obj/%s' % path, 'r').read()
+			except: return None
 
 	def mime(self, path):
 
-		ct = b'Content-Type: %s\r\n'
+		ct = b'Content-Type: %s; charset=utf-8\r\n'
 		mime = b'text/plain'
 
 		for k, v in self.STR_MIME.items():

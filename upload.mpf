@@ -1,18 +1,27 @@
 open ttyUSB0
 
-cd /lib
-mrm .*
-
+md /http
 cd /http
 mrm .*
 
+md /lib
+cd /lib
+mrm .*
+
+md /css
+cd /css
+mrm .*
+
+md /etc
 cd /etc
 mrm .*
 
-cd /var
+md /src
+cd /src
 mrm .*
 
-cd /src
+md /obj
+cd /obj
 mrm .*
 
 cd /
@@ -23,17 +32,18 @@ putc lib/driver.py
 putc lib/requests.py
 
 put http/index.html
+put http/scheds.html
 put http/prefs.html
 put http/logs.html
 
-put http/main.css
-put http/tabs.css
-put http/sets.css
-put http/toast.css
-
-put http/favicon.ico
+put css/main.css
+put css/tabs.css
+put css/sets.css
+put css/jobs.css
+put css/toast.css
 
 put src/index.js
+put src/scheds.js
 put src/prefs.js
 put src/logs.js
 put src/toast.js
@@ -41,6 +51,10 @@ put src/toast.js
 put etc/default.json
 put etc/driver.json
 put etc/plot.json
+put etc/plan.json
+put etc/jobs.json
+
+put obj/favicon.ico
 
 put main.py
 put boot.py

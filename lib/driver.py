@@ -1,13 +1,14 @@
 # coding=UTF-8
 
-import time, json, requests
+import time, ntptime, json, requests
 
 class driver:
 
 	REQ = 'http://api.openweathermap.org/data/2.5/weather?units=metric&lang=pl&q=%s&appid=%s'
+	OBL = 'Obliczona'
 
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
-	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne' }
+	DRIVER = { False: 'Ręczne', True: 'Automatyczne' }
 
 	LOGS = \
 	{
@@ -25,7 +26,26 @@ class driver:
 
 	def __init__(self, out):
 
-		settings = json.load(open('/etc/driver.json', 'r'))
+		try: settings = json.load(open('/etc/driver.json', 'r'))
+		except: settings = dict()
+
+		try: self.schedules = json.load(open('/etc/plan.json', 'r'))
+		except: self.schedules = dict()
+		finally: self.lasts = 0
+
+		try: self.tasks = json.load(open('/etc/jobs.json', 'r'))
+		except: self.tasks = dict()
+		finally: self.lastt = 0
+
+		for k in self.schedules:
+			if int(k) >= self.lasts:
+				self.lasts = int(k) + 1
+
+		for k in self.tasks:
+			if int(k) >= self.lastt:
+				self.lastt = int(k) + 1
+
+		self.temperatures = dict()
 
 		self.curr_temp = None
 		self.out_temp = None
@@ -49,9 +69,6 @@ class driver:
 		self.wtok = settings['outdor']['token']
 		self.wpla = settings['outdor']['place']
 
-		self.temperatures = dict()
-		self.schedules = dict()
-
 		self.tp_save = 0
 		self.tl_save = 0
 		self.tw_save = 0
@@ -63,18 +80,28 @@ class driver:
 		with open('/etc/driver.json', 'w') as f:
 			json.dump(self.get_conf(), f)
 
+	def save_scheds(self):
+
+		with open('/etc/plan.json', 'w') as f:
+			json.dump(self.get_scheds(), f)
+
+	def save_tasks(self):
+
+		with open('/etc/jobs.json', 'w') as f:
+			json.dump(self.get_tasks(), f)
+
 	def save_history(self, t):
 
-		try: hist = json.load(open('/var/history.json', 'r'))
+		try: hist = json.load(open('/etc/history.json', 'r'))
 		except: hist = list()
 
+		try: now = ntptime.time()
+		except: now = time.time()
+
 		p_dt = self.page / self.psize
-		now = time.time()
 		cur = set()
 
 		for v in hist:
-
-			if v['label'] == 'Obliczona': v['last'] = 0
 
 			if v['label'] in t and now - v['last'] >= p_dt:
 				v['data'].append({ 't': now, 'y': t[v['label']] })
@@ -98,15 +125,16 @@ class driver:
 					'data': [{'t': now, 'y': v}]
 				})
 
-		with open('/var/history.json', 'w') as f:
+		with open('/etc/history.json', 'w') as f:
 			json.dump(hist, f)
 
 	def save_logs(self, msg):
 
-		try: logs = json.load(open('/var/log.json', 'r'))
+		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: logs = list()
 
-		now = time.time()
+		try: now = ntptime.time()
+		except: now = time.time()
 
 		for v in logs:
 			if now - v['t'] >= self.lage:
@@ -116,12 +144,12 @@ class driver:
 
 		logs.append({ 't': now, 'msg': msg })
 
-		with open('/var/log.json', 'w') as f:
+		with open('/etc/log.json', 'w') as f:
 			json.dump(logs, f)
 
 	def set_power(self, p):
 
-		power = bool(int(p));
+		power = bool(int(p))
 
 		if self.power != power:
 
@@ -131,7 +159,7 @@ class driver:
 
 	def set_driver(self, p):
 
-		driver = int(p)
+		driver = bool(int(p))
 
 		if self.driver != driver:
 
@@ -140,63 +168,129 @@ class driver:
 
 	def set_temps(self, v):
 
+		if not len(v): return False
 		for k in v: v[k] = float(v[k])
 
 		self.temperatures.update(v)
 		self.curr_temp = self.get_calc()
 
-		v['Obliczona'] = self.curr_temp
-
+		v[self.OBL] = self.curr_temp
 		self.save_history(v)
+
+		return True
 
 	def set_params(self, v):
 
+		ok = True; num = 0
+
 		if 'hplus' in v:
-			self.hplus = float(v['hplus'])
+
+			val = float(v['hplus'])
+
+			if 1.0 <= val <= 3.0:
+				self.hplus = val
+				num = num + 1
+			else: ok = False
 
 		if 'hminus' in v:
-			self.hminus = float(v['hminus'])
+
+			val = float(v['hminus'])
+
+			if 1.0 <= val <= 3.0:
+				self.hminus = val
+				num = num + 1
+			else: ok = False
 
 		if 'target' in v:
-			self.tar_temp = float(v['target'])
+
+			val = float(v['target'])
+
+			if 15.0 <= val <= 25.0:
+				self.tar_temp = val
+				num = num + 1
+			else: ok = False
 
 		if 'psize' in v:
-			self.psize = int(v['psize'])
+
+			val = int(v['psize'])
+
+			if 30 <= val <= 150:
+				self.psize = val
+				num = num + 1
+			else: ok = False
 
 		if 'page' in v:
-			self.page = int(v['page']) * 86400
+
+			val = int(v['page'])
+
+			if 1 <= val <= 5:
+				self.page = val * 86400
+				num = num + 1
+			else: ok = False
 
 		if 'lsize' in v:
-			self.lsize = int(v['lsize'])
+
+			val = int(v['lsize'])
+
+			if 10 <= val <= 100:
+				self.lsize = val
+				num = num + 1
+			else: ok = False
 
 		if 'lage' in v:
-			self.lage = int(v['lage']) * 86400
+
+			val = int(v['lage'])
+
+			if 1 <= val <= 10:
+				self.lage = val * 86400
+				num = num + 1
+			else: ok = False
 
 		if 'wtref' in v:
-			self.wtref = int(v['wtref']) * 60
+
+			val = int(v['wtref'])
+
+			if 30 <= val <= 360:
+				self.wtref = val * 60
+				num = num + 1
+			else: ok = False
 
 		if 'wtok' in v:
-			self.wtok = str(v['wtok'])
+
+			val = str(v['wtok'])
+			self.wtok = val
+			num = num + 1
 
 		if 'wpla' in v:
-			self.wpla = str(v['wpla'])
+
+			val = str(v['wpla'])
+			self.wpla = val
 			self.tw_save = 0
+			num = num + 1
 
 		if 'funct' in v:
+
 			self.funct = int(v['funct'])
 			self.curr_temp = self.get_calc()
+			num = num + 1
 
 		if 'power' in v:
+
 			self.set_driver(int(0))
 			self.set_power(v['power'])
+			num = num + 1
 
 		if 'driver' in v:
+
 			self.set_driver(v['driver'])
+			num = num + 1
 
 		if 'save' in v:
-			self.save_settings()
 
-		return bool(len(v))
+			self.save_settings()
+			num = num + 1
+
+		return ok and num
 
 	def get_calc(self):
 
@@ -219,7 +313,7 @@ class driver:
 
 	def get_temps(self):
 
-		tmp = { 'Obliczona': self.curr_temp }
+		tmp = { self.OBL: self.curr_temp }
 		tmp.update(self.temperatures)
 
 		return tmp
@@ -288,13 +382,33 @@ class driver:
 				'plus': self.hplus,
 				'minus': self.hminus
 			},
-			"outdor":
+			'outdor':
 			{
-				"time": self.wtref,
-				"token": self.wtok,
-				"place": self.wpla
+				'time': self.wtref,
+				'token': self.wtok,
+				'place': self.wpla
 			}
 		}
+
+	def get_scheds(self):
+
+		return self.schedules
+
+	def get_tasks(self):
+
+		return self.tasks
+
+	def get_uids(self, v):
+
+		if 'sched' in v:
+			self.lasts += 1
+			return self.lasts
+
+		if 'task' in v:
+			self.lastt += 1
+			return self.lastt
+
+		return None
 
 	def get_drive(self):
 
@@ -315,7 +429,7 @@ class driver:
 
 	def on_hist(self, now):
 
-		try: hist = json.load(open('/var/history.json', 'r'))
+		try: hist = json.load(open('/etc/history.json', 'r'))
 		except: hist = list()
 
 		for v in hist:
@@ -329,12 +443,12 @@ class driver:
 
 			if not len(v['data']): hist.remove(v)
 
-		with open('/var/history.json', 'w') as f:
+		with open('/etc/history.json', 'w') as f:
 			json.dump(hist, f)
 
 	def on_logs(self, now):
 
-		try: logs = json.load(open('/var/log.json', 'r'))
+		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: logs = list()
 
 		for v in logs:
@@ -343,12 +457,13 @@ class driver:
 
 		while len(logs) > self.lsize: logs.pop(0)
 
-		with open('/var/log.json', 'w') as f:
+		with open('/etc/log.json', 'w') as f:
 			json.dump(logs, f)
 
 	def on_loop(self):
 
-		now = time.time()
+		try: now = ntptime.time()
+		except: now = time.time()
 
 		driver = self.driver
 		power = self.power
@@ -360,7 +475,7 @@ class driver:
 		if self.driver != driver:
 			self.set_driver(driver)
 
-		if self.driver == 1:
+		if self.driver:
 			power = self.get_drive()
 
 		if self.power != power:
