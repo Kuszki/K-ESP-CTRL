@@ -16,8 +16,32 @@ function onLoad()
 
 function onReset()
 {
+	var sec = document.getElementById('scheds').children;
+
+	while (sec.length) sec[0].remove();
+
 	if (cf_org == null) onLoad();
 	else onScheds(cf_org);
+}
+
+function onAdd()
+{
+	if (set_locked) return;
+	else set_locked = true;
+
+	$.when($.get('genid.html?sched'))
+	.done(function(data)
+	{
+		var sec = document.getElementById('scheds').children;
+
+		onAppend(data, {}, sec.length + 2);
+	})
+	.fail(function()
+	{
+		showToast('Nie udało się uzyskać identyfikatora', 5000);
+	});
+
+	set_locked = false;
 }
 
 function onScheds(data)
@@ -62,7 +86,7 @@ function onAppend(id, data, no)
 	var tto = genItem(form, 'input', 'time', 'to' + sid, true);
 	var lto = genLabel(form, 'Do', 'to' + sid);
 	var sact = genItem(form, 'select', null, 'act' + sid);
-	var lact = genLabel(form, 'Sterowanie', 'act' + sid);
+	var lact = genLabel(form, 'Sterowanie', 'act' + sid, true);
 
 	for (k in sets)
 	{
@@ -131,8 +155,8 @@ function genLabel(f, t, p = null)
 {
 	var i = document.createElement("label");
 
+	if (p) i.htmlFor = p;
 	i.innerText = t;
-	i.htmlFor = p;
 
 	f.append(i);
 
