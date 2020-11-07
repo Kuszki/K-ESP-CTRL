@@ -55,6 +55,7 @@ class driver:
 		self.tar_temp = settings['status']['target']
 		self.driver = settings['status']['driver']
 		self.funct = settings['status']['funct']
+		self.tzone = settings['status']['tzone']
 
 		self.hplus = settings['hyster']['plus']
 		self.hminus = settings['hyster']['minus']
@@ -179,6 +180,44 @@ class driver:
 
 		return True
 
+	def set_scheds(self, v):
+
+		print('set_scheds: %s, len: %s' % (v, len(v)))
+
+		if not len(v): return False
+
+		ok = True; num = 0
+
+		for k in v:
+
+			s = v[k].split(',')
+			num = num + 1
+
+			print('set: %s' % s)
+
+			if len(s) == 4:
+
+				if not k in self.schedules:
+					self.schedules[k] = dict()
+
+				self.schedules[k]['days'] = int(s[0])
+				self.schedules[k]['from'] = int(s[1])
+				self.schedules[k]['to'] = int(s[2])
+				self.schedules[k]['act'] = float(s[3])
+
+			elif v[k] == 'del':
+
+				del self.schedules[k]
+
+			else:
+
+				ok = False
+				num -= 1
+
+		if ok and num: self.save_scheds()
+
+		return ok and num
+
 	def set_params(self, v):
 
 		ok = True; num = 0
@@ -252,6 +291,15 @@ class driver:
 
 			if 30 <= val <= 360:
 				self.wtref = val * 60
+				num = num + 1
+			else: ok = False
+
+		if 'tzone' in v:
+
+			val = int(v['tzone'])
+
+			if -12 <= val <= 14:
+				self.tzone = val
 				num = num + 1
 			else: ok = False
 
@@ -345,6 +393,7 @@ class driver:
 			'driver': self.driver,
 			'target': self.tar_temp,
 			'funct': self.funct,
+			'tzone': self.tzone,
 			'hplus': self.hplus,
 			'hminus': self.hminus,
 			'psize': self.psize,
@@ -375,7 +424,8 @@ class driver:
 			{
 				'driver': self.driver,
 				'target': self.tar_temp,
-				'funct': self.funct
+				'funct': self.funct,
+				'tzone': self.tzone
 			},
 			'hyster':
 			{

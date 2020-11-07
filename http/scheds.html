@@ -14,6 +14,9 @@
 		<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 
 		<script src="scheds.js"></script>
+		<script src="forms.js"></script>
+		<script src="plan.js"></script>
+		<script src="job.js"></script>
 		<script src="toast.js"></script>
 
 		<script> $(document).ready(onLoad); </script>
@@ -35,14 +38,19 @@
 			<a href="logs.html">Historia</a>
 			<a href="prefs.html">Ustawienia</a>
 			<p>Ustawienia</p>
-			<a href="javascript:void(0)" onclick="onAdd()">Dodaj</a>
-			<a href="javascript:void(0)" onclick="onSave()">Zapisz</a>
-			<a href="javascript:void(0)" onclick="onReset()">Przywróć</a>
+			<a href="javascript:void(0)" onclick="onSchedsAdd()">Dodaj</a>
+			<a href="javascript:void(0)" onclick="onSchedsSave()">Zapisz</a>
+			<a href="javascript:void(0)" onclick="onSchedsReset()">Przywróć</a>
 		</nav>
 
 		<section>
 			<p>Harmonogram</p>
 			<div id="scheds"></div>
+		</section>
+
+		<section>
+			<p>Zdarzenia</p>
+			<div id="tasks"></div>
 		</section>
 
 		<footer id="toast"></footer>

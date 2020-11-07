@@ -13,7 +13,8 @@
 	{
 		"driver":	0,
 		"target":	19,
-		"funct": 0
+		"funct": 0,
+		"tzone": 1
 	},
 	"hyster":
 	{

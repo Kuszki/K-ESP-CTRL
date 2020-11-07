@@ -20,11 +20,16 @@ function onReset()
 function onSave()
 {
 	var f = document.getElementById('prefs').elements;
-	var ok = true;
+	var ok = true, ch = false, data = { 'save': 1 };
 
 	for (i = 0; i < f.length; ++i)
 	{
-		ok = ok && f[i].validity.valid;
+		if (cf_org[f[i].id] != f[i].value)
+		{
+			ok = ok && f[i].validity.valid;
+			data[f[i].id] = f[i].value;
+			ch = true;
+		}
 	}
 
 	if (!ok)
@@ -32,12 +37,16 @@ function onSave()
 		showToast('Zadane parametry są niepoprawne', 5000); return;
 	}
 
+	if (!ch)
+	{
+		showToast('Brak zmian do zapisania', 5000); return;
+	}
+
 	if (set_locked) return;
 	else set_locked = true;
 
 	showToast("Łączenie z urządzeniem...", 0);
-
-	var data = $('#prefs').serialize() + '&save=1';
+	console.log(data);
 
 	$.when($.get('config', data))
 	.done(function()

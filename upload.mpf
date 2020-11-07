@@ -47,6 +47,8 @@ put src/scheds.js
 put src/prefs.js
 put src/logs.js
 put src/toast.js
+put src/plan.js
+put src/job.js
 
 put etc/default.json
 put etc/driver.json
