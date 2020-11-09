@@ -36,6 +36,11 @@ function onSchedsRemove(id)
 
 function onSchedsSave()
 {
+	if (set_locked) return;
+	else set_locked = true;
+
+	showToast('Zapisywanie zmian...', 0);
+
 	var sec = getElem('scheds').children;
 	var req = {}, ch = false;
 
@@ -55,14 +60,16 @@ function onSchedsSave()
 		var from = getElem('from' + sid).valueAsNumber / 60000;
 		var to = getElem('to' + sid).valueAsNumber / 60000;
 		var act = getElem('act' + sid).value;
+		var on = getElem('slab' + sid).innerText == '✓' ? 1 : 0;
 
-		if (org == null || org.days != mask || org.from != from || org.to != to || org.act != act)
+		if (org == null || org.days != mask || org.from != from || org.to != to || org.act != act || org.on != on)
 		{
-			req[id] = mask + ',' + from + ',' + to + ',' + act; ch = true;
+			req[id] = mask + ',' + from + ',' + to + ',' + act + ',' + on; ch = true;
 		}
 	}
 
-	$.when($.get('schedup', req))
+	if (!ch) showToast('Brak zmian do zapisania', 5000);
+	else $.when($.get('schedup', req))
 	.done(function()
 	{
 		showToast('Harmonogram został zapisany', 5000);

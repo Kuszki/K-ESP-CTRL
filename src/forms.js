@@ -8,7 +8,7 @@ function onSchedsAppend(id, data)
 
 	var sid = '[' + id + ']';
 
-	var cols = []; for (i = 0; i < 6; ++i)
+	var cols = []; for (i = 0; i < 9; ++i)
 	{
 		col = genElem("td");
 		appCh(row, col);
@@ -24,14 +24,11 @@ function onSchedsAppend(id, data)
 		appCh(cols[1], cd);	appCh(cols[1], ld);
 	}
 
-	var lab = genLabel(form, '•');
+	var lab = genLabel(form, '•', null, 'slab' + sid);
 	var tfrom = genItem(form, 'input', 'time', 'from' + sid, true);
-	var lfrom =  genLabel(form, 'Od', 'from' + sid);
 	var tto = genItem(form, 'input', 'time', 'to' + sid, true);
-	var lto = genLabel(form, 'Do', 'to' + sid);
-	var sact = genItem(form, 'select', null, 'act' + sid);
-	var lact = genLabel(form, 'Sterowanie', 'act' + sid, true);
-	var bdel = genItem(form, 'input', 'button', 'del' + sid);
+	var sact = genItem(form, 'select', null, 'act' + sid, true);
+	var bdel = genItem(form, 'input', 'button', 'sdel' + sid);
 
 	for (k in sets)
 	{
@@ -59,11 +56,18 @@ function onSchedsAppend(id, data)
 		tfrom.max = tto.value;
 	}
 
+	lab.onclick = function()
+	{
+		var on = lab.innerText == '✓';
+		lab.innerText = !on ? '✓' : '✗';
+	}
+
 	bdel.onclick = function()
 	{
 		onSchedsRemove(id);
 	}
 
+	lab.innerText = data['on'] ? '✓' : '✗';
 	tfrom.valueAsNumber = data['from'] * 60000;
 	tto.valueAsNumber = data['to'] * 60000;
 	sact.value = data['act'];
@@ -71,11 +75,15 @@ function onSchedsAppend(id, data)
 	tfrom.max = tto.value;
 	bdel.value = 'Usuń';
 
+	cols[2].innerText = ',';
+	cols[4].innerText = '-';
+	cols[6].innerText = ':';
+
 	appCh(cols[0], lab);
-	appCh(cols[2], lfrom); appCh(cols[2], tfrom);
-	appCh(cols[3], lto); appCh(cols[3], tto);
-	appCh(cols[4], lact); appCh(cols[4], sact);
-	appCh(cols[5], bdel);
+	appCh(cols[3], tfrom);
+	appCh(cols[5], tto);
+	appCh(cols[7], sact);
+	appCh(cols[8], bdel);
 
 	appCh(tab, row);
 	appCh(form, tab);
@@ -92,7 +100,7 @@ function onTasksAppend(id, data)
 	var tab = genElem("table");
 	var row = genElem("tr");
 
-	var cols = []; for (i = 0; i < 4; ++i)
+	var cols = []; for (i = 0; i < 5; ++i)
 	{
 		col = genElem("td");
 		appCh(row, col);
@@ -101,36 +109,45 @@ function onTasksAppend(id, data)
 
 	var sid = '[' + id + ']';
 
-	var lab = genLabel(form, '•');
+	var dat = data['when'] * 1000 + off;
+	var lab = genLabel(form, '•', null, 'tlab' + sid);
 	var dwhen = genItem(form, 'input', 'date', 'dwhen' + sid, true);
-	var twhen =  genItem(form, 'input', 'time', 'twhen' + sid, true);
-	var sact = genItem(form, 'select', null, 'job' + sid);
-	var bdel = genItem(form, 'input', 'button', 'del' + sid);
+	var twhen = genItem(form, 'input', 'time', 'twhen' + sid, true);
+	var sact = genItem(form, 'select', null, 'job' + sid, true);
+	var bdel = genItem(form, 'input', 'button', 'tdel' + sid);
 
 	for (k in acts)
 	{
 		var opt = genElem("option");
-		opt.innerText = sets[k];
+		opt.innerText = acts[k];
 		opt.value = k;
 		appCh(sact, opt);
 	}
 
 	bdel.onclick = function()
 	{
-		onPlansRemove(id);
+		onTasksRemove(id);
 	}
 
-	dwhen.valueAsNumber = data['when'] * 1000 + off;
-	dwhen.minimum = new Date();
-	twhen.valueAsNumber = data['when'] * 1000 + off;
+	dwhen.onchange = function()
+	{
+		// TODO
+	}
+
+	dwhen.valueAsNumber = new Date(dat);
+	dwhen.min = new Date();
+	twhen.valueAsNumber = new Date(dat);
+	twhen.minimum = new Date();
 	sact.value = data['job'];
 	bdel.value = 'Usuń';
+
+	cols[2].innerText = ':';
 
 	appCh(cols[0], lab);
 	appCh(cols[1], dwhen);
 	appCh(cols[1], twhen);
-	appCh(cols[2], sact);
-	appCh(cols[3], bdel);
+	appCh(cols[3], sact);
+	appCh(cols[4], bdel);
 
 	appCh(tab, row);
 	appCh(form, tab);

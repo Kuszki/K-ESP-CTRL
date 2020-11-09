@@ -13,13 +13,14 @@ label
 
 td > *
 {
+	height: 100%;
 	vertical-align: middle;
 }
 
 table tr td:first-child,
 table tr th:first-child
 {
-	width: 100px;
+	width: 50px;
 }
 
 input, select
@@ -37,7 +38,7 @@ input[type=checkbox] + label
 
 	background: lightgray;
 
-	padding: 5px;
+	padding: 3px;
 
 	text-align: center;
 	cursor: pointer;

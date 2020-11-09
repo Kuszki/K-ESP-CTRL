@@ -1,8 +1,8 @@
 var days = {'pn': 'PN', 'wt': 'WT', 'sr': 'ŚR', 'cz': 'CZ', 'pt': 'PT', 'so': 'SO', 'nd': 'ND'};
-var acts = {'0': 'Wyłącz + Reczne', '1': 'Włącz + Ręczne', '2': 'Automatyczne' };
+var acts = {'0': 'Wyłącz + Ręczne', '1': 'Włącz + Ręczne', '2': 'Automatyczne' };
 var sets = {'0': 'Wyłącz', '100': 'Włącz' };
 
-var off = Date.UTC(2000, 0, 1);
+var off = 2*Date.UTC(2000, 0, 1) - (new Date(2000, 0, 1)).getTime();
 var set_locked = false;
 
 var sh_org = null, ta_org = null;

@@ -52,6 +52,7 @@ class driver:
 		self.ht_temp = None
 		self.power = False
 
+		self.def_temp = settings['status']['target']
 		self.tar_temp = settings['status']['target']
 		self.driver = settings['status']['driver']
 		self.funct = settings['status']['funct']
@@ -182,8 +183,6 @@ class driver:
 
 	def set_scheds(self, v):
 
-		print('set_scheds: %s, len: %s' % (v, len(v)))
-
 		if not len(v): return False
 
 		ok = True; num = 0
@@ -193,9 +192,7 @@ class driver:
 			s = v[k].split(',')
 			num = num + 1
 
-			print('set: %s' % s)
-
-			if len(s) == 4:
+			if len(s) == 5:
 
 				if not k in self.schedules:
 					self.schedules[k] = dict()
@@ -204,6 +201,7 @@ class driver:
 				self.schedules[k]['from'] = int(s[1])
 				self.schedules[k]['to'] = int(s[2])
 				self.schedules[k]['act'] = float(s[3])
+				self.schedules[k]['on'] = int(s[4])
 
 			elif v[k] == 'del':
 
@@ -215,6 +213,38 @@ class driver:
 				num -= 1
 
 		if ok and num: self.save_scheds()
+
+		return ok and num
+
+	def set_tasks(self, v):
+
+		if not len(v): return False
+
+		ok = True; num = 0
+
+		for k in v:
+
+			s = v[k].split(',')
+			num = num + 1
+
+			if len(s) == 2:
+
+				if not k in self.tasks:
+					self.tasks[k] = dict()
+
+				self.tasks[k]['when'] = int(s[0])
+				self.tasks[k]['job'] = int(s[1])
+
+			elif v[k] == 'del':
+
+				del self.tasks[k]
+
+			else:
+
+				ok = False
+				num -= 1
+
+		if ok and num: self.save_tasks()
 
 		return ok and num
 
@@ -245,7 +275,7 @@ class driver:
 			val = float(v['target'])
 
 			if 15.0 <= val <= 25.0:
-				self.tar_temp = val
+				self.def_temp = val
 				num = num + 1
 			else: ok = False
 
@@ -377,12 +407,13 @@ class driver:
 
 	def get_envinfo(self):
 
-		t = time.localtime()[0:6]
+		dt = time.time() + self.tzone * 3600
+		t = time.localtime(dt)[0:6]
 
 		return \
 		{
-			'Godzina (UTC)': '%d:%02d:%02d' % (t[3], t[4], t[5]),
-			'Data (UTC)': '%02d.%02d.%d' % (t[2], t[1], t[0]),
+			'Godzina': '%d:%02d:%02d' % (t[3], t[4], t[5]),
+			'Data': '%02d.%02d.%d' % (t[2], t[1], t[0]),
 			'Temperatura zewnętrzna': '%s %s' % (self.out_temp, '℃')
 		}
 
@@ -391,7 +422,7 @@ class driver:
 		return \
 		{
 			'driver': self.driver,
-			'target': self.tar_temp,
+			'target': self.def_temp,
 			'funct': self.funct,
 			'tzone': self.tzone,
 			'hplus': self.hplus,
@@ -423,7 +454,7 @@ class driver:
 			'status':
 			{
 				'driver': self.driver,
-				'target': self.tar_temp,
+				'target': self.def_temp,
 				'funct': self.funct,
 				'tzone': self.tzone
 			},
@@ -472,10 +503,65 @@ class driver:
 
 		return self.power
 
-	def on_schedule(self):
+	def on_task(self, t):
 
-		# TODO implement me
-		return self.driver, self.power, self.tar_temp
+		v = self.tasks; dt = 30; n = 0
+
+		driver = self.driver
+		power = self.power
+
+		for k in v:
+
+			when = v[k]['when']
+			job = v[k]['job']
+
+			if t - when > 3*dt: del v[k]; n += 1
+			elif t - when > 0:
+
+				if job == 0: power = 0; driver = 0
+				elif job == 1: power = 1; driver = 0
+				elif job == 2: driver = 1
+
+				del v[k]; n = n + 1
+
+		if n: self.save_tasks()
+
+		return driver, power
+
+	def on_schedule(self, t):
+
+		if not len(self.schedules):
+			return self.def_temp
+
+		t = t + self.tzone * 3600
+		t = time.localtime(t)
+
+		d = t[6]; m = 60*t[3] + t[4]
+		v = self.schedules; dt = 30
+
+		target = 0.0
+		dis = False
+		en = False
+
+		for k in v.values():
+
+			if not k['on']: continue
+
+			dok = k['days'] & (1 << d)
+			sok = k['from'] <= m
+			eok = k['to'] >= m
+
+			if dok and sok and eok:
+
+				target = max(k['act'], target)
+
+				dis = dis or k['act'] == 0.0
+				en = en or k['act'] == 100.0
+
+		if dis: target = 0.0
+		elif en: target = 100.0
+
+		return target
 
 	def on_hist(self, now):
 
@@ -519,13 +605,19 @@ class driver:
 		power = self.power
 		target = self.tar_temp
 
+		if len(self.tasks) > 0:
+			driver, power = self.on_task(now)
+
 		if self.driver != 0:
-			driver, power, target = self.on_schedule()
+			target = self.on_schedule(now)
 
 		if self.driver != driver:
 			self.set_driver(driver)
 
-		if self.driver:
+		if self.tar_temp != target:
+			self.tar_temp = target
+
+		if self.driver != 0:
 			power = self.get_drive()
 
 		if self.power != power:

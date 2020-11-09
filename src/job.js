@@ -36,6 +36,11 @@ function onTasksRemove(id)
 
 function onTasksSave()
 {
+	if (set_locked) return;
+	else set_locked = true;
+
+	showToast('Zapisywanie zmian...', 0);
+
 	var sec = getElem('tasks').children;
 	var req = {}, ch = false;
 
@@ -46,16 +51,18 @@ function onTasksSave()
 		var sid = '[' + id + ']';
 		var org = ta_org[id];
 
-		var when = getElem('when' + sid).valueAsNumber / 1000 - off;
+		var when = (getElem('dwhen' + sid).valueAsNumber - off) / 1000;
+		when += getElem('twhen' + sid).valueAsNumber / 1000;
 		var job = getElem('job' + sid).value;
 
 		if (org == null || org.when != when || org.job != job)
 		{
-			req[id] = when + ',' + job; s_ch = true;
+			req[id] = when + ',' + job; ch = true;
 		}
 	}
 
-	$.when($.get('taskup', s_req))
+	if (!ch) showToast('Brak zmian do zapisania', 5000);
+	else	$.when($.get('taskup', req))
 	.done(function()
 	{
 		showToast('Zdarzenia zostały zapisane', 5000);
@@ -70,10 +77,10 @@ function onTasksSave()
 
 function onTasksReset()
 {
-	var sec = getElem('scheds').children;
+	var sec = getElem('tasks').children;
 
 	while (sec.length) sec[0].remove();
 
-	if (sh_org == null) onLoad();
-	else onTasksLoad(sh_org);
+	if (ta_org == null) onLoad();
+	else onTasksLoad(ta_org);
 }

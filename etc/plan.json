@@ -4,20 +4,31 @@
 		"days": 31,
 		"from": 480,
 		"to": 960,
-		"act": 21
+		"act": 21,
+		"on": false
 	},
 	"2":
 	{
 		"days": 96,
 		"from": 520,
 		"to": 1200,
-		"act": 100
+		"act": 100,
+		"on": false
 	},
 	"3":
 	{
 		"days": 112,
 		"from": 760,
 		"to": 950,
-		"act": 0
+		"act": 0,
+		"on": false
+	},
+	"4":
+	{
+		"days": 1,
+		"from": 1200,
+		"to": 1275,
+		"act": 100,
+		"on": true
 	}
 }

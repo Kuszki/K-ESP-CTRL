@@ -45,7 +45,7 @@ function onSave()
 	if (set_locked) return;
 	else set_locked = true;
 
-	showToast("Łączenie z urządzeniem...", 0);
+	showToast("Zapisywanie ustawień...", 0);
 	console.log(data);
 
 	$.when($.get('config', data))

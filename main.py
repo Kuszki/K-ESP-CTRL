@@ -23,6 +23,7 @@ s.set_slite('genid.html', lambda v: d.get_uids(v))
 s.set_callback('config', lambda v: d.set_params(v))
 s.set_callback('tempup', lambda v: d.set_temps(v))
 s.set_callback('schedup', lambda v: d.set_scheds(v))
+s.set_callback('taskup', lambda v: d.set_tasks(v))
 
 wc = lambda x: d.on_loop()
 cb = lambda t: micropython.schedule(wc, None)
