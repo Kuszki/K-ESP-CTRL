@@ -6,6 +6,70 @@ function onTasksLoad(data)
 	}
 }
 
+function onTasksAppend(id, data)
+{
+	var sec = getElem('tasks');
+
+	var form = genElem("form");
+	var tab = genElem("table");
+	var row = genElem("tr");
+
+	var cols = []; for (i = 0; i < 5; ++i)
+	{
+		col = genElem("td");
+		appCh(row, col);
+		cols.push(col);
+	}
+
+	var sid = '[' + id + ']';
+
+	var dat = data['when'] * 1000 + off;
+	var lab = genLabel(form, '•', null, 'tlab' + sid);
+	var dwhen = genItem(form, 'input', 'date', 'dwhen' + sid, true);
+	var twhen = genItem(form, 'input', 'time', 'twhen' + sid, true);
+	var sact = genItem(form, 'select', null, 'job' + sid, true);
+	var bdel = genItem(form, 'input', 'button', 'tdel' + sid);
+
+	for (k in acts)
+	{
+		var opt = genElem("option");
+		opt.innerText = acts[k];
+		opt.value = k;
+		appCh(sact, opt);
+	}
+
+	bdel.onclick = function()
+	{
+		onTasksRemove(id);
+	}
+
+	dwhen.onchange = function()
+	{
+		// TODO
+	}
+
+	dwhen.valueAsNumber = new Date(dat);
+	dwhen.min = new Date();
+	twhen.valueAsNumber = new Date(dat);
+	twhen.minimum = new Date();
+	sact.value = data['job'];
+	bdel.value = 'Usuń';
+
+	cols[2].innerText = ':';
+
+	appCh(cols[0], lab);
+	appCh(cols[1], dwhen);
+	appCh(cols[1], twhen);
+	appCh(cols[3], sact);
+	appCh(cols[4], bdel);
+
+	appCh(tab, row);
+	appCh(form, tab);
+	appCh(sec, form);
+
+	form.id = 'task_' + id;
+}
+
 function onTasksAdd()
 {
 	if (set_locked) return;

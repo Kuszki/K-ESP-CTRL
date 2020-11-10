@@ -41,49 +41,61 @@ class server:
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind(('', 80))
-		self.sock.listen(10)
+		self.sock.listen(15)
 		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 
 	def stop(self):
 
 		self.sock.close()
 
-	def accept(self, s):
+	def accept(self, sock):
 
-		conn, addr = s.accept()
-		conn.setsockopt(socket.SOL_SOCKET, 20, self.recv)
+		self.recv(sock.accept()[0])
 
-	def recv(self, s):
+	def recv(self, sock):
 
-		try: slite, par = self.parse(s.recv(1024).decode())
-		except: s.close(); return
+		try: slite, par = self.parse(sock.recv(1024).decode())
+		except: sock.close(); return
+
+		tmp = None; con = None; sli = None
 
 		if slite in self.callback:
 			tmp = self.callback[slite](par)
-		else: tmp = None
 
 		if slite in self.slites:
 			con = self.slites[slite](par)
-		else: con = self.slite(slite);
+		else:
+			sli = self.slite(slite)
 
-		if con != None or tmp:
+		if con != None or tmp or sli != None:
 			hed = self.STR_OK
-		else: hed = self.STR_NF
+		else:
+			hed = self.STR_NF
 
 		try:
 
-			s.sendall(hed)
-			s.sendall(self.mime(slite))
-			s.sendall(self.STR_CL)
+			sock.sendall(hed)
+			sock.sendall(self.mime(slite))
+			sock.sendall(self.STR_CL)
 
 			if con != None:
-				s.sendall(str(con).encode())
+				sock.sendall(str(con).encode())
+
 			elif tmp != None:
-				s.sendall(str(tmp).encode())
+				sock.sendall(str(tmp).encode())
 
-		finally:
+			elif sli != None:
 
-			s.close()
+				buff = sli.read(1024)
+
+				while buff:
+
+					sock.sendall(buff)
+					buff = sli.read(1024)
+
+				sli.close()
+
+		finally: sock.close()
 
 	def parse(self, req):
 
@@ -151,23 +163,28 @@ class server:
 	def slite(self, path):
 
 		if path.endswith('.html'):
-			try: return open('/http/%s' % path, 'r').read()
+
+			try: return open('/http/%s' % path, 'rb')
 			except: return None
 
 		elif path.endswith('.css'):
-			try: return open('/css/%s' % path, 'r').read()
+
+			try: return open('/css/%s' % path, 'rb')
 			except: return None
 
 		elif path.endswith('.js'):
-			try: return open('/src/%s' % path, 'r').read()
+
+			try: return open('/src/%s' % path, 'rb')
 			except: return None
 
 		elif path.endswith('.json'):
-			try: return open('/etc/%s' % path, 'r').read()
+			try: return open('/etc/%s' % path, 'rb')
+
 			except: return None
 
 		else:
-			try: return open('/obj/%s' % path, 'r').read()
+
+			try: return open('/obj/%s' % path, 'rb')
 			except: return None
 
 	def mime(self, path):
