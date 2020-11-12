@@ -197,11 +197,18 @@ class driver:
 				if not k in self.schedules:
 					self.schedules[k] = dict()
 
-				self.schedules[k]['days'] = int(s[0])
-				self.schedules[k]['from'] = int(s[1])
-				self.schedules[k]['to'] = int(s[2])
-				self.schedules[k]['act'] = float(s[3])
-				self.schedules[k]['on'] = int(s[4])
+				try:
+
+					self.schedules[k]['days'] = int(s[0])
+					self.schedules[k]['from'] = int(s[1])
+					self.schedules[k]['to'] = int(s[2])
+					self.schedules[k]['act'] = float(s[3])
+					self.schedules[k]['on'] = int(s[4])
+
+				except:
+
+					ok = False
+					num -= 1
 
 			elif v[k] == 'del':
 
@@ -232,8 +239,15 @@ class driver:
 				if not k in self.tasks:
 					self.tasks[k] = dict()
 
-				self.tasks[k]['when'] = int(s[0])
-				self.tasks[k]['job'] = int(s[1])
+				try:
+
+					self.tasks[k]['when'] = int(s[0])
+					self.tasks[k]['job'] = int(s[1])
+
+				except:
+
+					ok = False
+					num -= 1
 
 			elif v[k] == 'del':
 
@@ -252,123 +266,125 @@ class driver:
 
 		ok = True; num = 0
 
-		if 'hplus' in v:
+		try:
 
-			val = float(v['hplus'])
+			if 'hplus' in v:
 
-			if 1.0 <= val <= 3.0:
-				self.hplus = val
+				val = float(v['hplus'])
+
+				if 0.5 <= val <= 3.0:
+					self.hplus = val
+					num = num + 1
+				else: ok = False
+
+			if 'hminus' in v:
+
+				val = float(v['hminus'])
+
+				if 0.5 <= val <= 3.0:
+					self.hminus = val
+					num = num + 1
+				else: ok = False
+
+			if 'target' in v:
+
+				val = float(v['target'])
+
+				if 15.0 <= val <= 25.0:
+					self.def_temp = val
+					num = num + 1
+				else: ok = False
+
+			if 'psize' in v:
+
+				val = int(v['psize'])
+
+				if 30 <= val <= 150:
+					self.psize = val
+					num = num + 1
+				else: ok = False
+
+			if 'page' in v:
+
+				val = int(v['page'])
+
+				if 1 <= val <= 5:
+					self.page = val * 86400
+					num = num + 1
+				else: ok = False
+
+			if 'lsize' in v:
+
+				val = int(v['lsize'])
+
+				if 10 <= val <= 100:
+					self.lsize = val
+					num = num + 1
+				else: ok = False
+
+			if 'lage' in v:
+
+				val = int(v['lage'])
+
+				if 1 <= val <= 10:
+					self.lage = val * 86400
+					num = num + 1
+				else: ok = False
+
+			if 'wtref' in v:
+
+				val = int(v['wtref'])
+
+				if 30 <= val <= 360:
+					self.wtref = val * 60
+					num = num + 1
+				else: ok = False
+
+			if 'tzone' in v:
+
+				val = int(v['tzone'])
+
+				if -12 <= val <= 14:
+					self.tzone = val
+					num = num + 1
+				else: ok = False
+
+			if 'wtok' in v:
+
+				val = str(v['wtok'])
+				self.wtok = val
 				num = num + 1
-			else: ok = False
 
-		if 'hminus' in v:
+			if 'wpla' in v:
 
-			val = float(v['hminus'])
-
-			if 1.0 <= val <= 3.0:
-				self.hminus = val
+				val = str(v['wpla'])
+				self.wpla = val
+				self.tw_save = 0
 				num = num + 1
-			else: ok = False
 
-		if 'target' in v:
+			if 'funct' in v:
 
-			val = float(v['target'])
-
-			if 15.0 <= val <= 25.0:
-				self.def_temp = val
+				self.funct = int(v['funct'])
+				self.curr_temp = self.get_calc()
 				num = num + 1
-			else: ok = False
 
-		if 'psize' in v:
+			if 'power' in v:
 
-			val = int(v['psize'])
-
-			if 30 <= val <= 150:
-				self.psize = val
+				self.set_driver(int(0))
+				self.set_power(v['power'])
 				num = num + 1
-			else: ok = False
 
-		if 'page' in v:
+			if 'driver' in v:
 
-			val = int(v['page'])
-
-			if 1 <= val <= 5:
-				self.page = val * 86400
+				self.set_driver(v['driver'])
 				num = num + 1
-			else: ok = False
 
-		if 'lsize' in v:
+			if 'save' in v:
 
-			val = int(v['lsize'])
-
-			if 10 <= val <= 100:
-				self.lsize = val
+				self.save_settings()
 				num = num + 1
-			else: ok = False
 
-		if 'lage' in v:
-
-			val = int(v['lage'])
-
-			if 1 <= val <= 10:
-				self.lage = val * 86400
-				num = num + 1
-			else: ok = False
-
-		if 'wtref' in v:
-
-			val = int(v['wtref'])
-
-			if 30 <= val <= 360:
-				self.wtref = val * 60
-				num = num + 1
-			else: ok = False
-
-		if 'tzone' in v:
-
-			val = int(v['tzone'])
-
-			if -12 <= val <= 14:
-				self.tzone = val
-				num = num + 1
-			else: ok = False
-
-		if 'wtok' in v:
-
-			val = str(v['wtok'])
-			self.wtok = val
-			num = num + 1
-
-		if 'wpla' in v:
-
-			val = str(v['wpla'])
-			self.wpla = val
-			self.tw_save = 0
-			num = num + 1
-
-		if 'funct' in v:
-
-			self.funct = int(v['funct'])
-			self.curr_temp = self.get_calc()
-			num = num + 1
-
-		if 'power' in v:
-
-			self.set_driver(int(0))
-			self.set_power(v['power'])
-			num = num + 1
-
-		if 'driver' in v:
-
-			self.set_driver(v['driver'])
-			num = num + 1
-
-		if 'save' in v:
-
-			self.save_settings()
-			num = num + 1
-
-		return ok and num
+		finally: return ok and num
 
 	def get_calc(self):
 

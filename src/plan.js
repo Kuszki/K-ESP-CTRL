@@ -133,10 +133,8 @@ function onSchedsSave()
 	if (set_locked) return;
 	else set_locked = true;
 
-	showToast('Zapisywanie zmian...', 0);
-
 	var sec = getElem('scheds').children;
-	var req = {}, ch = false;
+	var req = {}, ch = false, ok = true;
 
 	for (k in sh_del) { req[sh_del[k]] = 'del'; ch = true; }
 	for (i = 0; i < sec.length; ++i)
@@ -145,16 +143,26 @@ function onSchedsSave()
 		var sid = '[' + id + ']';
 		var org = sh_org[id];
 
+		var on = getElem('slab' + sid).innerText == '✓' ? 1 : 0;
+
 		var mask = 0, j = 0; for (k in days)
 		{
 			var che = getElem(k + sid);
 			mask = mask | (che.checked << j++);
 		}
 
-		var from = getElem('from' + sid).valueAsNumber / 60000;
-		var to = getElem('to' + sid).valueAsNumber / 60000;
-		var act = getElem('act' + sid).value;
-		var on = getElem('slab' + sid).innerText == '✓' ? 1 : 0;
+		var efrom = getElem('from' + sid);
+		var eto = getElem('to' + sid);
+		var eact = getElem('act' + sid);
+
+		var from = efrom.valueAsNumber / 60000;
+		var to = eto.valueAsNumber / 60000;
+		var act = eact.value;
+
+		ok = ok &&
+			efrom.validity.valid &&
+			eto.validity.valid &&
+			eact.validity.valid;
 
 		if (org == null || org.days != mask || org.from != from || org.to != to || org.act != act || org.on != on)
 		{
@@ -162,7 +170,10 @@ function onSchedsSave()
 		}
 	}
 
+	if (ch && ok) showToast('Zapisywanie zmian...', 0);
+
 	if (!ch) showToast('Brak zmian do zapisania', 5000);
+	else if (!ok) showToast('Zadane parametry są niepoprawne', 5000);
 	else $.when($.get('schedup', req))
 	.done(function()
 	{

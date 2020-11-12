@@ -19,6 +19,9 @@ function onReset()
 
 function onSave()
 {
+	if (set_locked) return;
+	else set_locked = true;
+
 	var f = document.getElementById('prefs').elements;
 	var ok = true, ch = false, data = { 'save': 1 };
 
@@ -32,23 +35,11 @@ function onSave()
 		}
 	}
 
-	if (!ok)
-	{
-		showToast('Zadane parametry są niepoprawne', 5000); return;
-	}
+	if (ch && ok) showToast("Zapisywanie ustawień...", 0);
 
-	if (!ch)
-	{
-		showToast('Brak zmian do zapisania', 5000); return;
-	}
-
-	if (set_locked) return;
-	else set_locked = true;
-
-	showToast("Zapisywanie ustawień...", 0);
-	console.log(data);
-
-	$.when($.get('config', data))
+	if (!ok) showToast('Zadane parametry są niepoprawne', 5000);
+	else if (!ch) showToast('Brak zmian do zapisania', 5000);
+	else $.when($.get('config', data))
 	.done(function()
 	{
 		showToast('Ustawienia zostały zapisane', 5000);

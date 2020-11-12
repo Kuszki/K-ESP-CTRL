@@ -50,7 +50,10 @@ class server:
 
 	def accept(self, sock):
 
-		self.recv(sock.accept()[0])
+		s = sock.accept()[0]
+		s.settimeout(5);
+
+		self.recv(s)
 
 	def recv(self, sock):
 

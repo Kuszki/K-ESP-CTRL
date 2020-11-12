@@ -43,15 +43,10 @@ function onTasksAppend(id, data)
 		onTasksRemove(id);
 	}
 
-	dwhen.onchange = function()
-	{
-		// TODO
-	}
 
 	dwhen.valueAsNumber = new Date(dat);
 	dwhen.min = new Date();
 	twhen.valueAsNumber = new Date(dat);
-	twhen.minimum = new Date();
 	sact.value = data['job'];
 	bdel.value = 'Usuń';
 
@@ -103,10 +98,8 @@ function onTasksSave()
 	if (set_locked) return;
 	else set_locked = true;
 
-	showToast('Zapisywanie zmian...', 0);
-
 	var sec = getElem('tasks').children;
-	var req = {}, ch = false;
+	var req = {}, ch = false, ok = true;
 
 	for (k in ta_del) { req[ta_del[k]] = 'del'; ch = true; }
 	for (i = 0; i < sec.length; ++i)
@@ -115,9 +108,19 @@ function onTasksSave()
 		var sid = '[' + id + ']';
 		var org = ta_org[id];
 
-		var when = (getElem('dwhen' + sid).valueAsNumber - off) / 1000;
-		when += getElem('twhen' + sid).valueAsNumber / 1000;
-		var job = getElem('job' + sid).value;
+		var ejob = getElem('job' + sid);
+		var edate = getElem('dwhen' + sid);
+		var etime = getElem('twhen' + sid);
+
+		var job = ejob.value;
+		var when =
+			(edate.valueAsNumber - off) / 1000 +
+			etime.valueAsNumber / 1000;
+
+		ok = ok &&
+			ejob.validity.valid &&
+			edate.validity.valid &&
+			etime.validity.valid;
 
 		if (org == null || org.when != when || org.job != job)
 		{
@@ -125,7 +128,10 @@ function onTasksSave()
 		}
 	}
 
+	if (ch && ok) showToast('Zapisywanie zmian...', 0);
+
 	if (!ch) showToast('Brak zmian do zapisania', 5000);
+	else if (!ok) showToast('Zadane parametry są niepoprawne', 5000);
 	else	$.when($.get('taskup', req))
 	.done(function()
 	{
