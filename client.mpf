@@ -1,0 +1,21 @@
+open ttyUSB0
+
+md /lib
+cd /lib
+mrm .*
+
+md /etc
+cd /etc
+mrm .*
+
+cd /
+mrm .*
+
+putc lib/client.py
+putc lib/netconf.py
+putc lib/requests.py
+
+put etc/network.json
+put etc/client.json
+
+

@@ -1,0 +1,14 @@
+{
+	"client":
+	{
+		"ssid": "",
+		"pass": "",
+		"on": true
+	},
+	"access":
+	{
+		"ssid": "",
+		"pass": "",
+		"on": false
+	}
+}

@@ -2,5 +2,17 @@
 
 PATH=$PATH:/usr/local/lib/python3.8/dist-packages/mpy_cross
 
-mpfshell -s upload.mpf
-mpfshell ttyUSB0 -c "repl"
+if [ "$1" = "-s" ]
+then
+	mpfshell -s server.mpf
+fi
+
+if [ "$1" = "-c" ]
+then
+	mpfshell -s client.mpf
+fi
+
+if [ "$2" = "-r" ]
+then
+	mpfshell ttyUSB0 -c "repl"
+fi

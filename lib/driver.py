@@ -157,7 +157,7 @@ class driver:
 
 			self.on_log('pwr', power)
 			self.power = power
-			self.out.value(not power)
+			self.out.value(power)
 
 	def set_driver(self, p):
 

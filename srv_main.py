@@ -4,7 +4,8 @@ from machine import Pin, Timer
 from driver import driver
 from server import server
 
-p = Pin(2, Pin.OUT)
+p = Pin(5, Pin.OUT, value = 0)
+l = Pin(2, Pin.OUT, value = 0)
 
 t = Timer(-1)
 n = Timer(-1)

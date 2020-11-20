@@ -29,6 +29,7 @@ mrm .*
 
 putc lib/server.py
 putc lib/driver.py
+putc lib/netconf.py
 putc lib/requests.py
 
 put http/index.html
@@ -50,6 +51,7 @@ put src/plan.js
 put src/jobs.js
 put src/toast.js
 
+put etc/network.json
 put etc/default.json
 put etc/driver.json
 put etc/plot.json
@@ -58,5 +60,5 @@ put etc/jobs.json
 
 put obj/favicon.ico
 
-put main.py
-put boot.py
+put srv_main.py main.py
+put srv_boot.py boot.py
