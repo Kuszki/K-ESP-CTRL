@@ -8,7 +8,7 @@ class driver:
 	OBL = 'Obliczona'
 
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
-	DRIVER = { False: 'Ręczne', True: 'Automatyczne' }
+	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne' }
 
 	LOGS = \
 	{
@@ -161,7 +161,7 @@ class driver:
 
 	def set_driver(self, p):
 
-		driver = bool(int(p))
+		driver = int(p)
 
 		if self.driver != driver:
 
