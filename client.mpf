@@ -12,10 +12,12 @@ cd /
 mrm .*
 
 putc lib/client.py
+putc lib/sensor.py
 putc lib/netconf.py
 putc lib/requests.py
 
 put etc/network.json
 put etc/client.json
 
-
+put client.py main.py
+put boot.py boot.py

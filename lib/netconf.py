@@ -4,10 +4,7 @@ import network, json
 
 class netconf:
 
-	def __init__(self):
-
-		self.sta_if = network.WLAN(network.STA_IF)
-		self.ap_if = network.WLAN(network.AP_IF)
+	def __init__(self): pass
 
 	def get_conf(self):
 
@@ -23,28 +20,26 @@ class netconf:
 
 		conf = self.get_conf()
 
-		try:
+		if 'client' in conf:
 
-			cli = conf['cli']
-			if cli['on']:
+			net = network.WLAN(network.STA_IF)
+			con = conf['client']
 
-				self.sta_if.active(True)
-				self.sta_if.connect(cli['ssid'], cli['pass'])
+			net.active(bool(int(con['on'])))
 
-			else: self.sta_if.active(False)
+			if net.active():
 
-		except: pass
+				net.config(dhcp_hostname = con['host'])
+				net.connect(con['ssid'], con['pass'])
 
-		try:
+		if 'access' in conf:
 
-			srv = conf['access']
-			if srv['on']:
+			net = network.WLAN(network.AP_IF)
+			con = conf['access']
 
-				self.ap_if.active(True)
-				self.ap_if.config(\
-					essid = srv['ssid'], password = srv['pass'], \
-					authmode = network.AUTH_WPA_WPA2_PSK)
+			net.active(bool(int(con['on'])))
 
-			else: self.ap_if.active(False)
-
-		except: pass
+			if net.active(): self.ap_if.config(\
+				essid = con['ssid'], password = con['pass'], \
+				authmode = network.AUTH_WPA_WPA2_PSK, \
+				dhcp_hostname = con['host'])

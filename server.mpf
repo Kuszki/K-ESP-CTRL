@@ -60,5 +60,5 @@ put etc/jobs.json
 
 put obj/favicon.ico
 
-put srv_main.py main.py
-put srv_boot.py boot.py
+put server.py main.py
+put boot.py boot.py
