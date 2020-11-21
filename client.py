@@ -9,7 +9,9 @@ i = machine.I2C(scl=machine.Pin(5), sda=machine.Pin(4))
 s = sensor(i, 0x77)
 
 c = client(s)
-c.on_send()
+
+try: c.on_send()
+except: pass
 
 if c.is_sleep() and w.value():
 

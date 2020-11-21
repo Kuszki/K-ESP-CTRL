@@ -41,7 +41,7 @@ class server:
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind(('', 80))
-		self.sock.listen(15)
+		self.sock.listen(30)
 		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 
 	def stop(self):
@@ -53,12 +53,13 @@ class server:
 		s = sock.accept()[0]
 		s.settimeout(5);
 
-		self.recv(s)
+		try: self.recv(s)
+		finally: s.close()
 
 	def recv(self, sock):
 
 		try: slite, par = self.parse(sock.recv(1024).decode())
-		except: sock.close(); return
+		except: return None
 
 		tmp = None; con = None; sli = None
 
@@ -98,7 +99,7 @@ class server:
 
 				sli.close()
 
-		finally: sock.close()
+		except: pass
 
 	def parse(self, req):
 
