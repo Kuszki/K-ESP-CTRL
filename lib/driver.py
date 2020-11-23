@@ -555,7 +555,8 @@ class driver:
 		d = t[6]; m = 60*t[3] + t[4]
 		v = self.schedules; dt = 30
 
-		target = 0.0
+		target = 0
+		found = False
 		dis = False
 		en = False
 
@@ -574,10 +575,13 @@ class driver:
 				dis = dis or k['act'] == 0.0
 				en = en or k['act'] == 100.0
 
+				found = True
+
 		if dis: target = 0.0
 		elif en: target = 100.0
 
-		return target
+		if found: return target
+		else: return self.def_temp
 
 	def on_hist(self, now):
 

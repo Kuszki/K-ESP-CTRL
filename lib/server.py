@@ -50,11 +50,16 @@ class server:
 
 	def accept(self, sock):
 
-		s = sock.accept()[0]
-		s.settimeout(5);
+		try:
 
-		try: self.recv(s)
-		finally: s.close()
+			s = sock.accept()[0]
+			s.settimeout(5);
+
+			self.recv(s)
+
+		finally:
+
+			s.close()
 
 	def recv(self, sock):
 
@@ -64,12 +69,15 @@ class server:
 		tmp = None; con = None; sli = None
 
 		if slite in self.callback:
-			tmp = self.callback[slite](par)
+			try: tmp = self.callback[slite](par)
+			except: tmp = None
 
 		if slite in self.slites:
-			con = self.slites[slite](par)
+			try: con = self.slites[slite](par)
+			except: con = None
 		else:
-			sli = self.slite(slite)
+			try: sli = self.slite(slite)
+			except: sli = None
 
 		if con != None or tmp or sli != None:
 			hed = self.STR_OK
@@ -97,9 +105,10 @@ class server:
 					sock.sendall(buff)
 					buff = sli.read(1024)
 
-				sli.close()
+		finally:
 
-		except: pass
+			if sli != None: sli.close()
+			del tmp, con, sli
 
 	def parse(self, req):
 
