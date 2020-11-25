@@ -99,41 +99,47 @@ class driver:
 
 		p_dt = self.page / self.psize
 		hist = os.listdir('/var')
-		cur = set()
 
-		for l in hist:
+		for k, y in t.items():
 
-			path = '/var/' + l; ch = False
+			path = '/var/%s.var' % k
 
-			with open(path, 'r') as f: v = json.load(f)
+			if k + '.var' in hist:
 
-			if v['label'] in t and now - v['last'] >= p_dt:
-				v['data'].append({ 't': now, 'y': t[v['label']] })
-				v['last'] = now
-				ch = True
+				with open(path, 'r') as f:
+					v = json.load(f)
+					ch = False
 
-			for h in v['data']:
-				if now - h['t'] >= self.page:
-					v['data'].remove(h)
+				if now - v['last'] >= p_dt:
+					v['data'].append({ 't': now, 'y': y })
+					v['last'] = now
 					ch = True
 
-			while len(v['data']) > self.psize:
-				v['data'].pop(0)
-				ch = True
+				for h in v['data']:
+					if now - h['t'] >= self.page:
+						v['data'].remove(h)
+						ch = True
 
-			if len(v['data']): cur.add(v['label'])
-			else: os.remove(path); ch = False
+				while len(v['data']) > self.psize:
+					v['data'].pop(0)
+					ch = True
 
-			if ch:
-				with open(path, 'w') as f:
-					v = json.dump(v, f)
+				if not len(v['data']):
+					os.remove(path)
 
-		for k, v in t.items():
-			if not k in cur:
+				elif ch:
+					with open(path, 'w') as f:
+						json.dump(v, f)
+
+				try: del v
+				except: pass
+
+			else:
+
 				with open('/var/%s.var' % k, 'w') as f: json.dump(\
 					{
 						'label': k, 'last': now,
-						'data': [{'t': now, 'y': v}]
+						'data': [{'t': now, 'y': y}]
 					}, f)
 
 	def save_logs(self, msg):
@@ -595,22 +601,31 @@ class driver:
 
 	def on_hist(self, now):
 
-		try: hist = json.load(open('/etc/history.json', 'r'))
-		except: hist = list()
+		for l in os.listdir('/var'):
 
-		for v in hist:
+			path = '/var/' + l; ch = False
+
+			with open(path, 'r') as f: v = json.load(f)
 
 			for h in v['data']:
 				if now - h['t'] >= self.page:
 					v['data'].remove(h)
+					ch = True
 
 			while len(v['data']) > self.psize:
 				v['data'].pop(0)
+				ch = True
 
-			if not len(v['data']): hist.remove(v)
+			if not len(v['data']):
+				os.remove(path)
+				ch = False
 
-		with open('/etc/history.json', 'w') as f:
-			json.dump(hist, f)
+			if ch:
+				with open(path, 'w') as f:
+					json.dump(v, f)
+
+			try: del v
+			except: pass
 
 	def on_logs(self, now):
 

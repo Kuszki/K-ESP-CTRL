@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-import socket
+import socket, ssl
 
 class server:
 
@@ -54,9 +54,11 @@ class server:
 		try:
 
 			s = sock.accept()[0]
-			s.settimeout(5);
+			s.settimeout(5)
 
 			self.recv(s)
+
+		except: pass
 
 		finally:
 
@@ -103,15 +105,17 @@ class server:
 
 				while buff:
 
-					sock.sendall(buff)
-					buff = sli.read(1024)
+					try: sock.sendall(buff)
+					except: buff = False
+					else: buff = sli.read(1024)
 
 			sock.sendall(b'\r\n')
+
+		except: pass
 
 		finally:
 
 			if sli != None: sli.close()
-			del tmp, con, sli
 
 	def parse(self, req):
 

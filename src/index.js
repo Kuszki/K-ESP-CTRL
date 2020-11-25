@@ -1,4 +1,4 @@
-var pl_colors = ['tomato', 'olive', 'teal', 'peru', 'coral', 'azure', 'blue'];
+var pl_colors = ['firebrick', 'olive', 'teal', 'seagreen', 'coral', 'crimson', 'limegreen', 'peru'];
 var set_locked = false;
 
 function onLoad()
