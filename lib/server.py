@@ -10,6 +10,7 @@ class server:
 		'.css': b'text/css',
 		'.js': b'text/javascript',
 		'.ico': b'image/png',
+		'.var': b'application/json',
 		'.json': b'application/json'
 	}
 
@@ -105,6 +106,8 @@ class server:
 					sock.sendall(buff)
 					buff = sli.read(1024)
 
+			sock.sendall(b'\r\n')
+
 		finally:
 
 			if sli != None: sli.close()
@@ -191,8 +194,13 @@ class server:
 			except: return None
 
 		elif path.endswith('.json'):
-			try: return open('/etc/%s' % path, 'rb')
 
+			try: return open('/etc/%s' % path, 'rb')
+			except: return None
+
+		elif path.endswith('.var'):
+
+			try: return open('/var/%s' % path, 'rb')
 			except: return None
 
 		else:

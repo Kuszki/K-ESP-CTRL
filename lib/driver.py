@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-import time, ntptime, json, requests
+import time, ntptime, json, requests, os
 
 class driver:
 
@@ -94,41 +94,47 @@ class driver:
 
 	def save_history(self, t):
 
-		try: hist = json.load(open('/etc/history.json', 'r'))
-		except: hist = list()
-
 		try: now = ntptime.time()
 		except: now = time.time()
 
 		p_dt = self.page / self.psize
+		hist = os.listdir('/var')
 		cur = set()
 
-		for v in hist:
+		for l in hist:
+
+			path = '/var/' + l; ch = False
+
+			with open(path, 'r') as f: v = json.load(f)
 
 			if v['label'] in t and now - v['last'] >= p_dt:
 				v['data'].append({ 't': now, 'y': t[v['label']] })
 				v['last'] = now
+				ch = True
 
 			for h in v['data']:
 				if now - h['t'] >= self.page:
 					v['data'].remove(h)
+					ch = True
 
 			while len(v['data']) > self.psize:
 				v['data'].pop(0)
+				ch = True
 
-			if not len(v['data']): hist.remove(v)
-			else: cur.add(v['label'])
+			if len(v['data']): cur.add(v['label'])
+			else: os.remove(path); ch = False
+
+			if ch:
+				with open(path, 'w') as f:
+					v = json.dump(v, f)
 
 		for k, v in t.items():
 			if not k in cur:
-				hist.append( \
-				{
-					'label': k, 'last': now,
-					'data': [{'t': now, 'y': v}]
-				})
-
-		with open('/etc/history.json', 'w') as f:
-			json.dump(hist, f)
+				with open('/var/%s.var' % k, 'w') as f: json.dump(\
+					{
+						'label': k, 'last': now,
+						'data': [{'t': now, 'y': v}]
+					}, f)
 
 	def save_logs(self, msg):
 
@@ -486,6 +492,10 @@ class driver:
 				'place': self.wpla
 			}
 		}
+
+	def get_hist(self):
+
+		return os.listdir('/var')
 
 	def get_scheds(self):
 

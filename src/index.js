@@ -3,34 +3,36 @@ var set_locked = false;
 
 function onLoad()
 {
-
 	$.when
 	(
 		$.getJSON('plot.json'),
 		$.getJSON('history.json')
 	)
-	.done(function(config, data)
+	.done(function(config, hist)
 	{
 		var off = Date.UTC(2000, 0, 1);
+		var data = new Array();
 
 		ctx = $('#plot')[0].getContext('2d');
 		plot = new Chart(ctx, config[0]);
 		moment.locale('pl');
 
-		for (i = 0; i < data[0].length; ++i)
+		for (k in hist[0]) $.getJSON(hist[0][k], function(x)
 		{
-			data[0][i].borderColor = pl_colors[i];
-			data[0][i].fill = false;
+			cn = plot.data.datasets.length;
 
-			for (j = 0; j < data[0][i].data.length; ++j)
+			x.borderColor = pl_colors[cn];
+			x.fill = false;
+
+			for (j = 0; j < x.data.length; ++j)
 			{
-				var old = data[0][i].data[j]['t'] * 1000;
-				data[0][i].data[j]['t'] = new Date(old + off);
+				var old = x.data[j]['t'] * 1000;
+				x.data[j]['t'] = new Date(old + off);
 			}
-		}
 
-		plot.data.datasets = data[0];
-		plot.update()
+			plot.data.datasets.push(x);
+			plot.update();
+		});
 	})
 	.fail(function()
 	{

@@ -18,6 +18,7 @@ s.set_slite('system.json', lambda v: json.dumps(d.get_status()))
 s.set_slite('outdor.json', lambda v: json.dumps(d.get_envinfo()))
 s.set_slite('prefs.json', lambda v: json.dumps(d.get_params()))
 s.set_slite('scheds.json', lambda v: json.dumps(d.get_scheds()))
+s.set_slite('history.json', lambda v: json.dumps(d.get_hist()))
 
 s.set_slite('genid.html', lambda v: d.get_uids(v))
 

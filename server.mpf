@@ -24,6 +24,10 @@ md /obj
 cd /obj
 mrm .*
 
+md /var
+cd /var
+mrm .*
+
 cd /
 mrm .*
 

@@ -28,8 +28,6 @@ class netconf:
 			net.active(bool(int(con['on'])))
 
 			if net.active():
-
-				net.config(dhcp_hostname = con['host'])
 				net.connect(con['ssid'], con['pass'])
 
 		if 'access' in conf:
@@ -41,5 +39,4 @@ class netconf:
 
 			if net.active(): self.ap_if.config(\
 				essid = con['ssid'], password = con['pass'], \
-				authmode = network.AUTH_WPA_WPA2_PSK, \
-				dhcp_hostname = con['host'])
+				authmode = network.AUTH_WPA_WPA2_PSK)

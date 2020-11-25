@@ -3,7 +3,7 @@ import machine, micropython
 from sensor import sensor
 from client import client
 
-w = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)
+w = machine.Pin(13, machine.Pin.IN, machine.Pin.PULL_UP)
 l = machine.Pin(2, machine.Pin.OUT, value=0)
 i = machine.I2C(scl=machine.Pin(5), sda=machine.Pin(4))
 s = sensor(i, 0x77)
