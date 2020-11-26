@@ -131,9 +131,6 @@ class driver:
 					with open(path, 'w') as f:
 						json.dump(v, f)
 
-				try: del v
-				except: pass
-
 			else:
 
 				with open('/var/%s.var' % k, 'w') as f: json.dump(\
@@ -623,9 +620,6 @@ class driver:
 			if ch:
 				with open(path, 'w') as f:
 					json.dump(v, f)
-
-			try: del v
-			except: pass
 
 	def on_logs(self, now):
 

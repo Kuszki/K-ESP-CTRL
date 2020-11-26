@@ -1,4 +1,4 @@
-import gc, ntptime, time, network
+import ntptime, time, network
 from netconf import netconf
 
 if not network.WLAN(network.STA_IF).active():
@@ -7,6 +7,3 @@ if not network.WLAN(network.STA_IF).active():
 
 try:	ntptime.settime()
 except: pass
-
-gc.enable()
-gc.collect()

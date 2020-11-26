@@ -1,18 +1,8 @@
 # coding=UTF-8
 
-import socket, ssl
+import socket
 
 class server:
-
-	STR_MIME = \
-	{
-		'.html': b'text/html',
-		'.css': b'text/css',
-		'.js': b'text/javascript',
-		'.ico': b'image/png',
-		'.var': b'application/json',
-		'.json': b'application/json'
-	}
 
 	STR_OK = b'HTTP/1.1 200 OK\r\n'
 	STR_NF = b'HTTP/1.1 404 NA\r\n'
@@ -41,9 +31,9 @@ class server:
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 		self.sock.bind(('', 80))
 		self.sock.listen(30)
-		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 
 	def stop(self):
 
@@ -59,10 +49,7 @@ class server:
 			self.recv(s)
 
 		except: pass
-
-		finally:
-
-			s.close()
+		finally: s.close()
 
 	def recv(self, sock):
 
@@ -111,11 +98,7 @@ class server:
 
 			sock.sendall(b'\r\n')
 
-		except: pass
-
-		finally:
-
-			if sli != None: sli.close()
+		except: return None
 
 	def parse(self, req):
 
@@ -182,43 +165,24 @@ class server:
 
 	def slite(self, path):
 
-		if path.endswith('.html'):
+		if path.endswith('.html'): path = '/http/%s' % path
+		elif path.endswith('.css'): path = '/css/%s' % path
+		elif path.endswith('.js'): path = '/src/%s' % path
+		elif path.endswith('.json'): path = '/etc/%s' % path
+		elif path.endswith('.var'): path = '/var/%s' % path
+		else: path = '/obj/%s' % path
 
-			try: return open('/http/%s' % path, 'rb')
-			except: return None
-
-		elif path.endswith('.css'):
-
-			try: return open('/css/%s' % path, 'rb')
-			except: return None
-
-		elif path.endswith('.js'):
-
-			try: return open('/src/%s' % path, 'rb')
-			except: return None
-
-		elif path.endswith('.json'):
-
-			try: return open('/etc/%s' % path, 'rb')
-			except: return None
-
-		elif path.endswith('.var'):
-
-			try: return open('/var/%s' % path, 'rb')
-			except: return None
-
-		else:
-
-			try: return open('/obj/%s' % path, 'rb')
-			except: return None
+		try: return open(path, 'rb')
+		except: return None
 
 	def mime(self, path):
 
-		ct = b'Content-Type: %s; charset=utf-8\r\n'
-		mime = b'text/plain'
+		if path.endswith('.html'): mime = b'text/html'
+		elif path.endswith('.css'): mime = b'text/css'
+		elif path.endswith('.js'): mime = b'text/javascript'
+		elif path.endswith('.ico'): mime = b'image/png'
+		elif path.endswith('.var'): mime = b'application/json'
+		elif path.endswith('.json'): mime = b'application/json'
+		else: mime = b'text/plain'
 
-		for k, v in self.STR_MIME.items():
-			if path.endswith(k):
-				mime = v; break
-
-		return ct % mime
+		return b'Content-Type: %s; charset=utf-8\r\n' % mime
