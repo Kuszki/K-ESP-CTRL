@@ -26,7 +26,7 @@ mrm .*
 
 md /var
 cd /var
-
+mrm .*
 
 cd /
 mrm .*

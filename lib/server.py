@@ -1,6 +1,7 @@
 # coding=UTF-8
 
-import socket
+from micropython import schedule
+import socket, gc
 
 class server:
 
@@ -33,7 +34,7 @@ class server:
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 		self.sock.bind(('', 80))
-		self.sock.listen(30)
+		self.sock.listen(15)
 
 	def stop(self):
 
@@ -46,15 +47,14 @@ class server:
 			s = sock.accept()[0]
 			s.settimeout(5)
 
-			self.recv(s)
-
-		except: pass
-		finally: s.close()
+		except: s.close()
+		else: schedule(self.recv, s)
 
 	def recv(self, sock):
 
 		try: slite, par = self.parse(sock.recv(1024).decode())
-		except: return None
+		except: sock.close(); return None
+		finally: gc.collect()
 
 		tmp = None; con = None; sli = None
 
@@ -98,7 +98,11 @@ class server:
 
 			sock.sendall(b'\r\n')
 
-		except: return None
+		except: pass
+		finally:
+
+			sock.close()
+			gc.collect()
 
 	def parse(self, req):
 
