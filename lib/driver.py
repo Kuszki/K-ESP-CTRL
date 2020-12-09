@@ -612,20 +612,37 @@ class driver:
 		t = time.localtime(t)
 
 		d = t[6]; m = 60*t[3] + t[4]
-		v = self.schedules; dt = 30
+		dm = 6 if d == 0 else d - 1
 
 		target = 0
 		found = False
 		dis = False
 		en = False
 
-		for k in v.values():
+		for k in self.schedules.values():
 
 			if not k['on']: continue
+			else:
 
-			dok = k['days'] & (1 << d)
-			sok = k['from'] <= m
-			eok = k['to'] >= m
+				day = k['days']
+				frt = k['from'] 
+				tot = k['to']
+				
+			if tot > frt:
+
+				dok = day & (1 << d)
+				sok = frt <= m
+				eok = tot >= m
+				
+			else:
+				
+				if day & (1 << d):
+					sok = frt >= m
+					dok = eok = True
+					
+				if day & (1 << dm):
+					eok = tot <= m
+					dok = sok = True
 
 			if dok and sok and eok:
 

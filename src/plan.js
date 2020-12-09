@@ -54,16 +54,6 @@ function onSchedsAppend(id, data)
 		appCh(sact, opt);
 	}
 
-	tfrom.onchange = function()
-	{
-		tto.min = tfrom.value;
-	}
-
-	tto.onchange = function()
-	{
-		tfrom.max = tto.value;
-	}
-
 	lab.onclick = function()
 	{
 		var on = lab.innerText == '✓';
@@ -79,8 +69,6 @@ function onSchedsAppend(id, data)
 	tfrom.valueAsNumber = data['from'] * 60000;
 	tto.valueAsNumber = data['to'] * 60000;
 	sact.value = data['act'];
-	tto.min = tfrom.value;
-	tfrom.max = tto.value;
 	bdel.value = 'Usuń';
 
 	cols[2].innerText = ',';
