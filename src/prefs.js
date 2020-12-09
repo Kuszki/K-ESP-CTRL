@@ -43,13 +43,13 @@ function onSave()
 	.done(function()
 	{
 		showToast('Ustawienia zostały zapisane', 5000);
+		set_locked = false;
 	})
 	.fail(function()
 	{
 		showToast('Nie udało się zapisać ustawień', 5000);
+		set_locked = false;
 	});
-
-	set_locked = false;
 }
 
 function onDefault(data)
@@ -58,12 +58,15 @@ function onDefault(data)
 	else set_locked = true;
 
 	$.when($.getJSON('default.json', onPrefs))
+	.done(function()
+	{
+		set_locked = false;
+	})
 	.fail(function()
 	{
 		showToast('Nie udało się wczytać wartości', 5000);
+		set_locked = false;
 	});
-
-	set_locked = false;
 }
 
 function onPrefs(data)

@@ -58,16 +58,6 @@ function onLoad()
 	{
 		$('#system').html('Błąd w ładowaniu danych');
 	});
-
-	$.when($.getJSON('outdor.json', onOutdor))
-	.done(function()
-	{
-		setInterval($.getJSON, 10000, 'outdor.json', onOutdor);
-	})
-	.fail(function()
-	{
-		$('#outdor').html('Błąd w ładowaniu danych');
-	});
 }
 
 function onTemps(data)
@@ -94,18 +84,6 @@ function onSystem(data)
 	$('#system').html(table + '</table>');
 }
 
-function onOutdor(data)
-{
-	var table = '<table><tr><th>Informacja</th><th>Wartość</th>';
-
-	for (const k in data)
-	{
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`;
-	}
-
-	$('#outdor').html(table + '</table>');
-}
-
 function onEnable(param)
 {
 	if (set_locked) return;
@@ -118,10 +96,10 @@ function onEnable(param)
 	{
 		$.getJSON('system.json', onSystem);
 		showToast("Sterowanie zaktualizowane", 5000);
+
+		set_locked = false;
 	})
 	.fail(onError);
-
-	set_locked = false;
 }
 
 function onDriver(param)
@@ -136,13 +114,14 @@ function onDriver(param)
 	{
 		$.getJSON('system.json', onSystem);
 		showToast("Sterowanie zaktualizowane", 5000);
+
+		set_locked = false;
 	})
 	.fail(onError);
-
-	set_locked = false;
 }
 
 function onError()
 {
 	showToast("Nie udało się wykonać zapytania", 5000);
+	set_locked = false;
 }

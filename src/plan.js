@@ -111,13 +111,13 @@ function onSchedsAdd()
 	.done(function(data)
 	{
 		onSchedsAppend(data, {});
+		set_locked = false;
 	})
 	.fail(function()
 	{
 		showToast('Nie udało się uzyskać identyfikatora', 5000);
+		set_locked = false;
 	});
-
-	set_locked = false;
 }
 
 function onSchedsRemove(id)
@@ -178,13 +178,13 @@ function onSchedsSave()
 	.done(function()
 	{
 		showToast('Harmonogram został zapisany', 5000);
+		set_locked = false;
 	})
 	.fail(function()
 	{
 		showToast('Nie udało się zapisać harmonogramu', 5000);
+		set_locked = false;
 	});
-
-	set_locked = false;
 }
 
 function onSchedsReset()

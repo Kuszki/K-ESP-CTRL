@@ -1,5 +1,8 @@
 open ttyUSB0
 
+cd /
+mrm .*
+
 md /http
 cd /http
 mrm .*

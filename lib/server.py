@@ -1,7 +1,6 @@
 # coding=UTF-8
 
-from micropython import schedule
-import socket, gc
+import socket, select, gc
 
 class server:
 
@@ -32,29 +31,54 @@ class server:
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.sock.setsockopt(socket.SOL_SOCKET, 20, self.accept)
 		self.sock.bind(('', 80))
 		self.sock.listen(15)
+
+		self.poll = select.poll()
+		self.poll.register(self.sock, select.POLLIN)
 
 	def stop(self):
 
 		self.sock.close()
 
-	def accept(self, sock):
+		del self.poll
+		del self.sock
+
+	def accept(self):
+
+		res = self.poll.poll(1000);
+
+		if not res: return None
+
+		s = self.sock.accept()[0]
+		s.settimeout(3)
 
 		try:
 
-			s = sock.accept()[0]
-			s.settimeout(5)
+			gc.collect()
+			self.recv(s)
 
-		except: s.close()
-		else: schedule(self.recv, s)
+		except: pass
+
+		finally:
+
+			s.close()
+			gc.collect()
 
 	def recv(self, sock):
 
-		try: slite, par = self.parse(sock.recv(1024).decode())
-		except: sock.close(); return None
-		finally: gc.collect()
+		try:
+
+			buff = sock.recv(1024).decode()
+			slite, par = self.parse(buff)
+
+			del buff; gc.collect()
+
+			self.resp(slite, par, sock)
+
+		except: raise
+
+	def resp(self, slite, par, sock):
 
 		tmp = None; con = None; sli = None
 
@@ -96,13 +120,15 @@ class server:
 					except: buff = False
 					else: buff = sli.read(1024)
 
+				del buff
+
 			sock.sendall(b'\r\n')
 
-		except: pass
+		except: raise
 		finally:
 
-			sock.close()
-			gc.collect()
+			if sli: sli.close()
+			del tmp, con, sli
 
 	def parse(self, req):
 

@@ -1,5 +1,8 @@
 open ttyUSB0
 
+cd /
+mrm .*
+
 md /lib
 cd /lib
 mrm .*

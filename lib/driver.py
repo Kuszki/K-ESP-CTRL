@@ -5,7 +5,9 @@ import time, ntptime, json, requests, os
 class driver:
 
 	REQ = 'http://api.openweathermap.org/data/2.5/weather?units=metric&lang=pl&q=%s&appid=%s'
+
 	OBL = 'Obliczona'
+	OUT = 'Zewnętrzna'
 
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
 	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne' }
@@ -49,14 +51,17 @@ class driver:
 
 		self.curr_temp = None
 		self.out_temp = None
-		self.ht_temp = None
+		self.out_wet = None
 		self.power = False
 
 		self.def_temp = settings['status']['target']
 		self.tar_temp = settings['status']['target']
 		self.driver = settings['status']['driver']
 		self.funct = settings['status']['funct']
-		self.tzone = settings['status']['tzone']
+
+		self.tzone = settings['time']['zone']
+		self.loop = settings['time']['loop']
+		self.sync = settings['time']['sync']
 
 		self.hplus = settings['hyster']['plus']
 		self.hminus = settings['hyster']['minus']
@@ -70,6 +75,9 @@ class driver:
 		self.wtref = settings['outdor']['time']
 		self.wtok = settings['outdor']['token']
 		self.wpla = settings['outdor']['place']
+
+		self.last_loop = 0
+		self.last_sync = 0
 
 		self.tp_save = 0
 		self.tl_save = 0
@@ -94,11 +102,9 @@ class driver:
 
 	def save_history(self, t):
 
-		try: now = ntptime.time()
-		except: now = time.time()
-
 		p_dt = self.page / self.psize
 		hist = os.listdir('/var')
+		now = self.get_time()
 
 		for k, y in t.items():
 
@@ -143,9 +149,7 @@ class driver:
 
 		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: logs = list()
-
-		try: now = ntptime.time()
-		except: now = time.time()
+		finally: now = self.get_time()
 
 		for v in logs:
 			if now - v['t'] >= self.lage:
@@ -349,12 +353,30 @@ class driver:
 					num = num + 1
 				else: ok = False
 
+			if 'sync' in v:
+
+				val = int(v['sync'])
+
+				if 5 <= val <= 360:
+					self.sync = val * 60
+					num = num + 1
+				else: ok = False
+
 			if 'tzone' in v:
 
 				val = int(v['tzone'])
 
 				if -12 <= val <= 14:
 					self.tzone = val
+					num = num + 1
+				else: ok = False
+
+			if 'loop' in v:
+
+				val = int(v['loop'])
+
+				if 5 <= val <= 60:
+					self.loop = val
 					num = num + 1
 				else: ok = False
 
@@ -416,21 +438,17 @@ class driver:
 
 	def get_temps(self):
 
-		tmp = { self.OBL: self.curr_temp }
+		tmp = \
+		{
+			self.OBL: self.curr_temp,
+			self.OUT: self.out_temp
+		}
+
 		tmp.update(self.temperatures)
 
 		return tmp
 
 	def get_status(self):
-
-		return \
-		{
-			'Status': self.POWER[bool(self.power)],
-			'Sterowanie': self.DRIVER[self.driver],
-			'Temperatura wody': '%s %s' % (self.ht_temp, '℃')
-		}
-
-	def get_envinfo(self):
 
 		dt = time.time() + self.tzone * 3600
 		t = time.localtime(dt)[0:6]
@@ -439,7 +457,9 @@ class driver:
 		{
 			'Godzina': '%d:%02d:%02d' % (t[3], t[4], t[5]),
 			'Data': '%02d.%02d.%d' % (t[2], t[1], t[0]),
-			'Temperatura zewnętrzna': '%s %s' % (self.out_temp, '℃')
+			'Status': self.POWER[bool(self.power)],
+			'Sterowanie': self.DRIVER[self.driver],
+			'Pogoda': self.out_wet
 		}
 
 	def get_params(self):
@@ -450,6 +470,7 @@ class driver:
 			'target': self.def_temp,
 			'funct': self.funct,
 			'tzone': self.tzone,
+			'loop': self.loop,
 			'hplus': self.hplus,
 			'hminus': self.hminus,
 			'psize': self.psize,
@@ -459,6 +480,8 @@ class driver:
 
 			'page': int(self.page / 86400),
 			'lage': int(self.lage / 86400),
+
+			'sync': int(self.sync / 60),
 			'wtref': int(self.wtref / 60)
 		}
 
@@ -480,8 +503,13 @@ class driver:
 			{
 				'driver': self.driver,
 				'target': self.def_temp,
-				'funct': self.funct,
-				'tzone': self.tzone
+				'funct': self.funct
+			},
+			'time':
+			{
+				'zone': self.tzone,
+				'loop': self.loop,
+				'sync': self.sync
 			},
 			'hyster':
 			{
@@ -531,6 +559,24 @@ class driver:
 		if self.curr_temp <= tminus: return True;
 
 		return self.power
+
+	def get_time(self):
+
+		now = time.time()
+		timeout = now - self.last_sync >= self.sync
+		firstsyn = self.last_sync == 0
+
+		if timeout or firstsyn:
+
+			try:
+
+				ntptime.settime()
+				now = time.time()
+
+			except: self.last_sync = 0
+			else: self.last_sync = now
+
+		return now
 
 	def on_task(self, t):
 
@@ -637,12 +683,17 @@ class driver:
 
 	def on_loop(self):
 
-		try: now = ntptime.time()
-		except: now = time.time()
+		now = self.get_time()
 
-		driver = self.driver
-		power = self.power
-		target = self.tar_temp
+		if now - self.last_loop >= self.loop:
+
+			self.last_loop = now
+
+			driver = self.driver
+			power = self.power
+			target = self.tar_temp
+
+		else: return None
 
 		if len(self.tasks) > 0:
 			driver, power = self.on_task(now)
@@ -663,31 +714,45 @@ class driver:
 			self.set_power(power)
 
 		if now - self.tp_save >= self.page:
-			self.on_hist(now)
 			self.tp_save = now
+			self.on_hist(now)
 
 		if now - self.tl_save >= self.lage:
-			self.on_logs(now)
 			self.tl_save = now
+			self.on_logs(now)
 
 		if now - self.tw_save >= self.wtref:
-			self.on_outdor()
 			self.tw_save = now
+			self.on_outdor()
 
 	def on_outdor(self):
 
 		if not self.wtok or not self.wpla:
-			self.out_temp = None; return
+
+			self.out_temp = None
+			self.out_wet = None
+			self.tw_save = 0
+
+			return None
 
 		try:
 
 			req = self.REQ % (self.wpla, self.wtok)
-			ans = requests.get(req).json()['main']['temp']
+			ans = requests.get(req).json()
 
-			self.out_temp = ans
-			self.save_history({ 'Zewnętrzna': ans })
+			wet = ans['weather'][0]['description']
+			temp = ans['main']['temp']
 
-		except: self.out_temp = None
+			self.out_wet = wet[0].upper() + wet[1:]
+			self.out_temp = temp
+
+			self.save_history({ 'Zewnętrzna': temp })
+
+		except:
+
+			self.out_temp = None
+			self.out_wet = None
+			self.tw_save = 0
 
 	def on_log(self, cat, stat = None):
 

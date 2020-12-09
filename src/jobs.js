@@ -76,13 +76,13 @@ function onTasksAdd()
 	.done(function(data)
 	{
 		onTasksAppend(data, {});
+		set_locked = false;
 	})
 	.fail(function()
 	{
 		showToast('Nie udało się uzyskać identyfikatora', 5000);
+		set_locked = false;
 	});
-
-	set_locked = false;
 }
 
 function onTasksRemove(id)
@@ -136,13 +136,13 @@ function onTasksSave()
 	.done(function()
 	{
 		showToast('Zdarzenia zostały zapisane', 5000);
+		set_locked = false;
 	})
 	.fail(function()
 	{
 		showToast('Nie udało się zapisać zdarzeń', 5000);
+		set_locked = false;
 	});
-
-	set_locked = false;
 }
 
 function onTasksReset()
