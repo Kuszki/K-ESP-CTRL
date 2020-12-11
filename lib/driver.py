@@ -625,23 +625,23 @@ class driver:
 			else:
 
 				day = k['days']
-				frt = k['from'] 
+				frt = k['from']
 				tot = k['to']
-				
+
 			if tot > frt:
 
 				dok = day & (1 << d)
 				sok = frt <= m
 				eok = tot >= m
-				
+
 			else:
-				
+
 				if day & (1 << d):
-					sok = frt >= m
+					sok = frt <= m
 					dok = eok = True
-					
+
 				if day & (1 << dm):
-					eok = tot <= m
+					eok = tot >= m
 					dok = sok = True
 
 			if dok and sok and eok:
