@@ -555,8 +555,8 @@ class driver:
 		tplus = self.tar_temp + self.hplus
 		tminus = self.tar_temp - self.hminus
 
-		if self.curr_temp >= tplus: return False;
-		if self.curr_temp <= tminus: return True;
+		if self.curr_temp >= tplus: return False
+		if self.curr_temp <= tminus: return True
 
 		return self.power
 

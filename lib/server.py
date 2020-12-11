@@ -46,7 +46,7 @@ class server:
 
 	def accept(self):
 
-		res = self.poll.poll(1000);
+		res = self.poll.poll(1000)
 
 		if not res: return None
 
