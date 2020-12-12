@@ -130,8 +130,16 @@ function onTasksSave()
 
 	if (ch && ok) showToast('Zapisywanie zmian...', 0);
 
-	if (!ch) showToast('Brak zmian do zapisania', 5000);
-	else if (!ok) showToast('Zadane parametry są niepoprawne', 5000);
+	if (!ch)
+	{
+		showToast('Brak zmian do zapisania', 5000);
+		set_locked = false;
+	}
+	else if (!ok)
+	{
+		showToast('Zadane parametry są niepoprawne', 5000);
+		set_locked = false;
+	}
 	else	$.when($.get('taskup', req))
 	.done(function()
 	{

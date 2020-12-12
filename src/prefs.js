@@ -37,8 +37,16 @@ function onSave()
 
 	if (ch && ok) showToast("Zapisywanie ustawień...", 0);
 
-	if (!ok) showToast('Zadane parametry są niepoprawne', 5000);
-	else if (!ch) showToast('Brak zmian do zapisania', 5000);
+	if (!ok)
+	{
+		showToast('Zadane parametry są niepoprawne', 5000);
+		set_locked = false;
+	}
+	else if (!ch)
+	{
+		showToast('Brak zmian do zapisania', 5000);
+		set_locked = false;
+	}
 	else $.when($.get('config', data))
 	.done(function()
 	{

@@ -63,10 +63,12 @@ function onLoad()
 function onTemps(data)
 {
 	var table = '<table><tr><th>Miejsce</th><th>Wartość</th>';
+	var temp = 0.0;
 
 	for (const k in data)
 	{
-		table += `<tr><td>${k}</td><td>${data[k]} ℃</td></tr>`;
+		temp = Number(data[k]).toFixed(2);
+		table += `<tr><td>${k}</td><td>${temp} ℃</td></tr>`;
 	}
 
 	$('#temps').html(table + '</table>');
