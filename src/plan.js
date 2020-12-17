@@ -46,7 +46,7 @@ function onSchedsAppend(id, data)
 		appCh(sact, opt);
 	}
 
-	for (t = 15.0; t <= 25.0; t += 0.5)
+	for (t = 15.0; t <= 25.0; t += 0.25)
 	{
 		var opt = genElem("option");
 		opt.innerText = t + ' ℃';
