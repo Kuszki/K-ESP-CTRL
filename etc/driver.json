@@ -20,7 +20,9 @@
 	{
 		"zone": 1,
 		"loop": 30,
-		"sync": 600
+		"sync": 600,
+		"minon": 3600,
+		"minoff": 3600
 	}
 	"history":
 	{
