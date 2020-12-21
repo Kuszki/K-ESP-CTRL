@@ -28,9 +28,6 @@ class driver:
 
 	def __init__(self, out):
 
-		try: settings = json.load(open('/etc/driver.json', 'r'))
-		except: settings = dict()
-
 		try: self.schedules = json.load(open('/etc/plan.json', 'r'))
 		except: self.schedules = dict()
 		finally: self.lasts = 0
@@ -47,6 +44,63 @@ class driver:
 			if int(k) >= self.lastt:
 				self.lastt = int(k) + 1
 
+		try: settings = json.load(open('/etc/driver.json', 'r'))
+		except: settings = dict()
+
+		try: self.def_temp = settings['status']['target']
+		except: self.def_temp = 20.0
+
+		try: self.tar_temp = settings['status']['target']
+		except: self.tar_temp = 20.0
+
+		try: self.driver = settings['status']['driver']
+		except: self.driver = False
+
+		try: self.funct = settings['status']['funct']
+		except: self.funct = 0
+
+		try: self.tzone = settings['time']['zone']
+		except: self.tzone = 0
+
+		try: self.loop = settings['time']['loop']
+		except: self.loop = 30
+
+		try: self.sync = settings['time']['sync']
+		except: self.sync = 600
+
+		try: self.minon = settings['time']['minon']
+		except: self.minon = 3600
+
+		try: self.minoff = settings['time']['minoff']
+		except: self.minoff = 3600
+
+		try: self.hplus = settings['hyster']['plus']
+		except: self.hplus = 0.75
+
+		try: self.hminus = settings['hyster']['minus']
+		except: self.hminus = 0.75
+
+		try: self.psize = settings['history']['size']
+		except: self.psize = 72
+
+		try: self.page = settings['history']['age']
+		except: self.page = 259200
+
+		try: self.lsize = settings['logs']['size']
+		except: self.lsize = 25
+
+		try: self.lage = settings['logs']['age']
+		except: self.lage = 259200
+
+		try: self.wtref = settings['outdor']['time']
+		except: self.wtref = 1800
+
+		try: self.wtok = settings['outdor']['token']
+		except: self.wtok = str()
+
+		try: self.wpla = settings['outdor']['place']
+		except: self.wpla = str()
+
 		self.temperatures = dict()
 
 		self.curr_temp = None
@@ -54,30 +108,9 @@ class driver:
 		self.out_wet = None
 		self.power = False
 
-		self.def_temp = settings['status']['target']
-		self.tar_temp = settings['status']['target']
-		self.driver = settings['status']['driver']
-		self.funct = settings['status']['funct']
-
-		self.tzone = settings['time']['zone']
-		self.loop = settings['time']['loop']
-		self.sync = settings['time']['sync']
-
-		self.hplus = settings['hyster']['plus']
-		self.hminus = settings['hyster']['minus']
-
-		self.psize = settings['history']['size']
-		self.page = settings['history']['age']
-
-		self.lsize = settings['logs']['size']
-		self.lage = settings['logs']['age']
-
-		self.wtref = settings['outdor']['time']
-		self.wtok = settings['outdor']['token']
-		self.wpla = settings['outdor']['place']
-
 		self.last_loop = 0
 		self.last_sync = 0
+		self.last_sw = 0
 
 		self.tp_save = 0
 		self.tl_save = 0
@@ -362,6 +395,24 @@ class driver:
 					num = num + 1
 				else: ok = False
 
+			if 'minon' in v:
+
+				val = int(v['minon'])
+
+				if 30 <= val <= 180:
+					self.minon = val * 60
+					num = num + 1
+				else: ok = False
+
+			if 'minoff' in v:
+
+				val = int(v['minoff'])
+
+				if 30 <= val <= 180:
+					self.minoff = val * 60
+					num = num + 1
+				else: ok = False
+
 			if 'tzone' in v:
 
 				val = int(v['tzone'])
@@ -482,6 +533,8 @@ class driver:
 			'lage': int(self.lage / 86400),
 
 			'sync': int(self.sync / 60),
+			'minoff': int(self.minoff / 60),
+			'minon': int(self.minon / 60),
 			'wtref': int(self.wtref / 60)
 		}
 
@@ -509,7 +562,9 @@ class driver:
 			{
 				'zone': self.tzone,
 				'loop': self.loop,
-				'sync': self.sync
+				'sync': self.sync,
+				'minon': self.minon,
+				'minoff': self.minoff
 			},
 			'hyster':
 			{
@@ -630,21 +685,23 @@ class driver:
 
 			if tot > frt:
 
-				dok = day & (1 << d)
-				sok = frt <= m
-				eok = tot >= m
+				ok = day & (1 << d)
+				ok = ok and (frt <= m)
+				ok = ok and (tot >= m)
 
 			else:
 
+				tn = tm = False
+
 				if day & (1 << d):
-					sok = frt <= m
-					dok = eok = True
+					tn = frt <= m
 
 				if day & (1 << dm):
-					eok = tot >= m
-					dok = sok = True
+					tm = tot >= m
 
-			if dok and sok and eok:
+				ok = tn or tm
+
+			if ok:
 
 				target = max(k['act'], target)
 
@@ -712,6 +769,9 @@ class driver:
 
 		else: return None
 
+		if power: swok = now - self.last_sw >= self.minon
+		else: swok = now - self.last_sw >= self.minoff
+
 		if len(self.tasks) > 0:
 			driver, power = self.on_task(now)
 
@@ -724,10 +784,11 @@ class driver:
 		if self.tar_temp != target:
 			self.tar_temp = target
 
-		if self.driver != 0:
+		if self.driver != 0 and swok:
 			power = self.get_drive()
 
-		if self.power != power:
+		if self.power != power and swok:
+			self.last_sw = now
 			self.set_power(power)
 
 		if now - self.tp_save >= self.page:
