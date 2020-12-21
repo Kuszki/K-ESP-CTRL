@@ -87,3 +87,24 @@ function onPrefs(data)
 		else e.value = data[k];
 	}
 }
+
+function onExpand(tree)
+{
+	var e = document.getElementById(tree);
+	if (e != null) if (e.className == "hide")
+	{
+		e.className = "off";
+		setTimeout(function()
+		{
+			e.className = "on";
+		}, 150);
+	}
+	else
+	{
+		e.className = "off";
+		setTimeout(function()
+		{
+			e.className = "hide";
+		}, 1000);
+	}
+}

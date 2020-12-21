@@ -43,7 +43,6 @@ function onTasksAppend(id, data)
 		onTasksRemove(id);
 	}
 
-
 	dwhen.valueAsNumber = new Date(dat);
 	dwhen.min = new Date();
 	twhen.valueAsNumber = new Date(dat);
@@ -70,11 +69,10 @@ function onTasksAdd()
 	if (set_locked) return;
 	else set_locked = true;
 
-	var sec = getElem('tasks').children;
-
 	$.when($.get('genid.html?task'))
 	.done(function(data)
 	{
+		onExpand('tasks', true);
 		onTasksAppend(data, {});
 		set_locked = false;
 	})
@@ -88,9 +86,11 @@ function onTasksAdd()
 function onTasksRemove(id)
 {
 	getElem('task_' + id).remove();
-	ta_del.push(id);
 
-	var sec = getElem('tasks').children;
+	var n = ta_add.indexOf(id);
+
+	if (n > -1) ta_add.splice(n, 1);
+	else ta_del.push(id);
 }
 
 function onTasksSave()
@@ -161,4 +161,6 @@ function onTasksReset()
 
 	if (ta_org == null) onLoad();
 	else onTasksLoad(ta_org);
+
+	onExpand('tasks', true);
 }

@@ -7,6 +7,7 @@ var set_locked = false;
 
 var sh_org = null, ta_org = null;
 var sh_del = [], ta_del = [];
+var sh_add = [], ta_add = [];
 
 function onLoad()
 {
@@ -66,4 +67,27 @@ function genLabel(f, t, p = null, n = null)
 function genElem(n)
 {
 	return document.createElement(n);
+}
+
+function onExpand(tree, show = false)
+{
+	var e = getElem(tree);
+	if (e == null) return;
+
+	if (e.className == "hide")
+	{
+		e.className = "off";
+		setTimeout(function()
+		{
+			e.className = "on";
+		}, 150);
+	}
+	else if (!show)
+	{
+		e.className = "off";
+		setTimeout(function()
+		{
+			e.className = "hide";
+		}, 1000);
+	}
 }

@@ -93,12 +93,12 @@ function onSchedsAdd()
 	if (set_locked) return;
 	else set_locked = true;
 
-	var sec = getElem('scheds').children;
-
 	$.when($.get('genid.html?sched'))
 	.done(function(data)
 	{
+		onExpand('scheds', true);
 		onSchedsAppend(data, {});
+		sh_add.push(data);
 		set_locked = false;
 	})
 	.fail(function()
@@ -111,9 +111,11 @@ function onSchedsAdd()
 function onSchedsRemove(id)
 {
 	getElem('sched_' + id).remove();
-	sh_del.push(id);
 
-	var sec = getElem('scheds').children;
+	var n = sh_add.indexOf(id);
+
+	if (n > -1) sh_add.splice(n, 1);
+	else sh_del.push(id);
 }
 
 function onSchedsSave()
@@ -191,4 +193,6 @@ function onSchedsReset()
 
 	if (sh_org == null) onLoad();
 	else onSchedsLoad(sh_org);
+
+	onExpand('scheds', true);
 }

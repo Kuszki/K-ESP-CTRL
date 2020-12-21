@@ -67,7 +67,7 @@ function onTemps(data)
 
 	for (const k in data)
 	{
-		temp = Number(data[k]).toFixed(2);
+		temp = Number(data[k]).toPrecision(3);
 		table += `<tr><td>${k}</td><td>${temp} ℃</td></tr>`;
 	}
 

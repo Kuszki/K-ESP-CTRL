@@ -43,8 +43,8 @@
 		</menu>
 
 		<section><form id="prefs">
-			<p>Ustawienia sterownika</p>
-			<table>
+			<p onclick="onExpand('drv')">Ustawienia sterownika</p>
+			<table id="drv" class="on">
 				<tr>
 					<td><label for="driver">Rodzaj sterowania</label></td>
 					<td><select id="driver" name="driver">
@@ -63,56 +63,75 @@
 				</tr>
 				<tr>
 					<td><label for="target">Domyślna temperatura</label></td>
-					<td><input type="number" id="target" name="target" min="15" max="25" step="0.25" required></td>
+					<td><input class="stc" type="number" id="target" name="target" min="15" max="25" step="0.25" required></td>
 				</tr>
 				<tr>
 					<td><label for="hplus">Histereza w górę</label></td>
-					<td><input type="number" id="hplus" name="hplus" min="0.5" max="3" step="0.25" required></td>
+					<td><input class="stc" type="number" id="hplus" name="hplus" min="0.5" max="3" step="0.25" required></td>
 				</tr>
 				<tr>
 					<td><label for="hminus">Histereza w dół</label></td>
-					<td><input type="number" id="hminus" name="hminus" min="0.5" max="3" step="0.25" required></td>
+					<td><input class="stc" type="number" id="hminus" name="hminus" min="0.5" max="3" step="0.25" required></td>
+				</tr>
+				<tr>
+					<td><label for="loop">Interwał pętli sterowania</label></td>
+					<td><input class="sec" type="number" id="loop" name="loop" min="5" max="60" step="1" required></td>
+				</tr>
+			</table>
+			<p onclick="onExpand('tim')">Ustawienia czasu</p>
+			<table id="tim" class="hide">
+				<tr>
+					<td><label for="minon">Minimalny czas włączenia</label></td>
+					<td><input class="min" type="number" id="minon" name="minon" min="30" max="180" required></td>
+				</tr>
+				<tr>
+					<td><label for="minoff">Minimalny czas wyłączenia</label></td>
+					<td><input class="min" type="number" id="minoff" name="minoff" min="30" max="180" required></td>
+				</tr>
+				<tr>
+					<td><label for="sync">Interwał synchronizacji czasu</label></td>
+					<td><input class="min" type="number" id="sync" name="sync" min="5" max="360" required></td>
 				</tr>
 				<tr>
 					<td><label for="tzone">Strefa czasowa</label></td>
-					<td><input type="number" id="tzone" name="tzone" min="-12" max="14" required></td>
+					<td><input class="utc" type="number" id="tzone" name="tzone" min="-12" max="14" required></td>
 				</tr>
 			</table>
-			<p>Ustawienia wykresu</p>
-			<table>
+			<p onclick="onExpand('plo')">Ustawienia wykresu</p>
+			<table id="plo" class="hide">
 				<tr>
 					<td><label for="psize">Liczba pozycji na wykresie</label></td>
-					<td><input type="number" id="psize" name="psize" min="30" max="150" required></td>
+					<td><input class="pkt" type="number" id="psize" name="psize" min="30" max="150" required></td>
 				</tr>
 				<tr>
 					<td><label for="page">Liczba dni na wykresie</label></td>
-					<td><input type="number" id="page" name="page" min="1" max="5" required></td>
+					<td><input class="day" type="number" id="page" name="page" min="1" max="5" required></td>
 				</tr>
 			</table>
-			<p>Ustawienia historii</p>
-			<table>
+			<p onclick="onExpand('his')">Ustawienia historii</p>
+			<table id="his" class="hide">
 				<tr>
 					<td><label for="lsize">Liczba pozycji w historii</label></td>
-					<td><input type="number" id="lsize" name="lsize" min="10" max="100" required></td>
+					<td><input class="pkt" type="number" id="lsize" name="lsize" min="10" max="100" required></td>
 				</tr>
 				<tr>
 					<td><label for="lage">Liczba dni historii</label></td>
-					<td><input type="number" id="lage" name="lage" min="1" max="10" required></td>
+					<td><input class="day" type="number" id="lage" name="lage" min="1" max="10" required></td>
 				</tr>
 			</table>
-			<p>Ustawienia pogody</p>
-			<table>
+			<p onclick="onExpand('wea')">Ustawienia pogody</p>
+			<table id="wea" class="hide">
 				<tr>
 					<td><label for="wtref">Czas odświeżania pogody</label></td>
-					<td><input type="number" id="wtref" name="wtref" min="30" max="360" required></td>
-				</tr>
-				<tr>
-					<td><label for="wpla">Lokalizacja</label></td>
-					<td><input type="text" id="wpla" name="wpla"></td>
+					<td><input class="min" type="number" id="wtref" name="wtref" min="30" max="360" required></td>
 				</tr>
 				<tr>
 					<td><label for="wtok">Token openweathermap.org</label></td>
 					<td><input type="text" id="wtok" name="wtok"></td>
+				</tr>
+				<tr>
+					<td><label for="wpla">Lokalizacja</label></td>
+					<td><input type="text" id="wpla" name="wpla"></td>
 				</tr>
 			</table>
 		</form></section>
@@ -120,4 +139,12 @@
 		<footer id="toast"></footer>
 
 	</body>
+	<script>
+		$("td:has(input.sec)").addClass("sec");
+		$("td:has(input.min)").addClass("min");
+		$("td:has(input.stc)").addClass("stc");
+		$("td:has(input.day)").addClass("day");
+		$("td:has(input.pkt)").addClass("pkt");
+		$("td:has(input.utc)").addClass("utc");
+	</script>
 </html>
