@@ -1,12 +1,18 @@
 # coding=UTF-8
 
-import socket, select, gc
+import socket, select, json, gc
 
 class server:
 
 	STR_OK = b'HTTP/1.1 200 OK\r\n'
-	STR_NF = b'HTTP/1.1 404 NA\r\n'
+	STR_NF = b'HTTP/1.1 404 NF\r\n'
+	STR_NA = b'HTTP/1.1 406 NA\r\n'
+
 	STR_CL = b'Connection: close\r\n\r\n'
+
+	B_LEN = const(2048)
+	Q_LEN = const(25)
+	W_LEN = const(1000)
 
 	def __init__(self, port = 80):
 
@@ -31,8 +37,8 @@ class server:
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.sock.bind(('', 80))
-		self.sock.listen(15)
+		self.sock.bind(('', self.port))
+		self.sock.listen(self.Q_LEN)
 
 		self.poll = select.poll()
 		self.poll.register(self.sock, select.POLLIN)
@@ -46,7 +52,7 @@ class server:
 
 	def accept(self):
 
-		res = self.poll.poll(1000)
+		res = self.poll.poll(self.W_LEN)
 
 		if not res: return None
 
@@ -54,125 +60,168 @@ class server:
 		s.settimeout(3)
 
 		try:
-
 			gc.collect()
 			self.recv(s)
-
 		except: pass
-
 		finally:
-
 			s.close()
 			gc.collect()
+
+		return True
 
 	def recv(self, sock):
 
 		try:
 
-			buff = sock.recv(1024).decode()
-			slite, par = self.parse(buff)
+			try: buff = sock.recv(self.B_LEN)
+			except: raise
+
+			while buff.find(b'\r\n\r\n') == -1:
+				if not buff: raise BufferError
+				else: buff += sock.recv(self.B_LEN)
+
+			if buff.startswith(b'POST /'):
+				slite, par = self.post(buff, sock)
+
+			elif buff.startswith(b'GET /'):
+				slite, par = self.get(buff)
+
+			else:
+				sock.sendall(self.STR_NA)
+				sock.sendall(self.STR_CL)
 
 			del buff; gc.collect()
 
-			self.resp(slite, par, sock)
+			if slite:
+				self.resp(slite, par, sock)
 
 		except: raise
 
 	def resp(self, slite, par, sock):
 
-		tmp = None; con = None; sli = None
+		tmp = None; con = None; sli = None; mim = None
 
 		if slite in self.callback:
 			try: tmp = self.callback[slite](par)
-			except: tmp = None
+			except: pass
 
 		if slite in self.slites:
 			try: con = self.slites[slite](par)
-			except: con = None
-		else:
-			try: sli = self.slite(slite)
-			except: sli = None
+			except: pass
 
-		if con != None or tmp or sli != None:
+		else:
+			try: sli, mim = self.slite(slite)
+			except: pass
+
+		if con != None or sli != None or tmp:
 			hed = self.STR_OK
 		else:
 			hed = self.STR_NF
 
+		if mim == None:
+			mim = self.mime(slite)
+
 		try:
 
 			sock.sendall(hed)
-			sock.sendall(self.mime(slite))
+			sock.sendall(mim)
 			sock.sendall(self.STR_CL)
 
 			if con != None:
 				sock.sendall(str(con).encode())
 
-			elif tmp != None:
-				sock.sendall(str(tmp).encode())
-
 			elif sli != None:
 
-				buff = sli.read(1024)
+				buff = sli.read(self.B_LEN)
 
 				while buff:
 
 					try: sock.sendall(buff)
 					except: buff = False
-					else: buff = sli.read(1024)
+					else: buff = sli.read(self.B_LEN)
 
-				del buff
+				del buff; sli.close()
 
-			sock.sendall(b'\r\n')
+			elif tmp != None:
+				sock.sendall(str(tmp).encode())
 
 		except: raise
 		finally:
+			del hed, mim, sli, con, tmp
 
-			if sli: sli.close()
-			del tmp, con, sli
+	def get(self, req):
 
-	def parse(self, req):
+		e = req.find(b'\r\n\r\n')
+		a = req.find(b'GET /', 0, e) + 5
+		b = req.find(b' HTTP', a, e)
 
-		a = req.find('GET /') + 5
-		b = req.find(' HTTP', a)
-
-		if a == -1 or b == -1 or a > b:
+		if a == 4 or b == -1 or a > b:
 			return str(), dict()
 		else: req = req[a:b]
 
-		par = req.find('?')
+		par = req.find(b'?')
 		d = self.unquote
-		vlist = dict()
 
 		if par != -1:
 
 			slite = d(req[0:par])
 			req = req[par+1:]
+			vlist = self.split(req)
 
-			for p in req.split('&'):
+		else:
 
-				if p.find('=') != -1:
+			slite = d(req)
+			vlist = dict()
 
-					i = p.split('=')
-					vlist[d(i[0])] = d(i[1])
-
-				else:
-
-					vlist[d(p)] = None
-
-		else: slite = d(req)
-
-		if slite == '':
+		if slite == b'':
 			slite = 'index.html'
+		else:
+			slite = slite.decode()
+
+		return slite, vlist
+
+	def post(self, req, sock):
+
+		e = req.find(b'\r\n\r\n')
+		a = req.find(b'POST /', 0, e) + 6
+		b = req.find(b' HTTP', a, e)
+		d = self.unquote
+
+		if a == 5 or b == -1 or a > b:
+			return str(), dict()
+
+		elif a == b: slite = 'index.html'
+		else: slite = d(req[a:b]).decode()
+
+		j = req.find(b'Content-Type: application/json', b, e)
+		p = req.find(b'Content-Type: text/plain', b, e)
+
+		a = req.find(b'Content-Length: ', b, e) + 15
+		b = req.find(b'\r\n', a, e)
+
+		if a == 14 or b == -1 or a > b:
+			return slite, dict()
+		else:
+			try: leng = int(req[a:b])
+			except: return slite, dict()
+			else: req = req[e+4:]
+
+		while len(req) != leng:
+			try: req += sock.recv(self.B_LEN)
+			except: return slite, dict()
+
+			if not req: raise BufferError
+
+		if j != -1: vlist = json.loads(req)
+		elif p != -1: vlist = req.decode()
+		else: vlist = self.split(req)
 
 		return slite, vlist
 
 	def unquote(self, string):
 
-		if not string: return str()
-		if not '%' in string: return string
-
-		if isinstance(string, str):
-			string = string.encode()
+		if not string: return bytes()
+		if not b'%' in string: return string
 
 		bits = string.split(b'%')
 		res = [ bits[0] ]
@@ -190,29 +239,53 @@ class server:
 				res.append(b'%')
 				res.append(s)
 
-		return b''.join(res).decode()
+		return b''.join(res)
 
+	def split(self, string):
+
+		d = self.unquote
+		vlist = dict()
+
+		for p in string.split(b'&'):
+
+			if p.find(b'=') != -1:
+
+				i = p.split(b'=')
+				k = d(i[0]).decode()
+				v = d(i[1]).decode()
+
+				vlist[k] = v
+
+			else:
+
+				k = d(p).decode()
+				vlist[k] = None
+
+		return vlist
 
 	def slite(self, path):
 
-		if path.endswith('.html'): path = '/http/%s' % path
+		if path == 'favicon.ico': path = '/obj/favicon.ico'
+
+		elif path.endswith('.html'): path = '/http/%s' % path
+		elif path.endswith('.json'): path = '/etc/%s' % path
 		elif path.endswith('.css'): path = '/css/%s' % path
 		elif path.endswith('.js'): path = '/src/%s' % path
-		elif path.endswith('.json'): path = '/etc/%s' % path
-		elif path.endswith('.var'): path = '/var/%s' % path
-		else: path = '/obj/%s' % path
 
-		try: return open(path, 'rb')
-		except: return None
+		else: path = '/var/%s' % path
+
+		try: return open(path, 'rb'), self.mime(path)
+		except: return None, None
 
 	def mime(self, path):
 
-		if path.endswith('.html'): mime = b'text/html'
-		elif path.endswith('.css'): mime = b'text/css'
-		elif path.endswith('.js'): mime = b'text/javascript'
-		elif path.endswith('.ico'): mime = b'image/png'
-		elif path.endswith('.var'): mime = b'application/json'
+		if path.startswith('/var/'): mime = b'application/json'
+		elif path.endswith('.html'): mime = b'text/html'
 		elif path.endswith('.json'): mime = b'application/json'
+		elif path.endswith('.css'): mime = b'text/css'
+		elif path.endswith('.ico'): mime = b'image/png'
+		elif path.endswith('.js'): mime = b'text/javascript'
+
 		else: mime = b'text/plain'
 
 		return b'Content-Type: %s; charset=utf-8\r\n' % mime

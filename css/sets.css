@@ -69,6 +69,11 @@ td.pkt::after
 	content: 'próbki';
 }
 
+td.rec::after
+{
+	content: 'wpisy';
+}
+
 td.utc::after
 {
 	content: 'UTC';

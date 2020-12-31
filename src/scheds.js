@@ -11,6 +11,8 @@ var sh_add = [], ta_add = [];
 
 function onLoad()
 {
+	$.ajaxSetup({ 'timeout': 2500 });
+
 	$.when($.getJSON('plan.json', onSchedsLoad))
 	.done(function(data) { sh_org = data; })
 	.fail(function()
@@ -52,7 +54,7 @@ function genItem(f, c, t, n, req = false)
 
 function genLabel(f, t, p = null, n = null)
 {
-	var i = genElem("label");
+	var i = genElem('label');
 
 	if (p) i.htmlFor = p;
 	if (n) i.id = n;
@@ -74,20 +76,20 @@ function onExpand(tree, show = false)
 	var e = getElem(tree);
 	if (e == null) return;
 
-	if (e.className == "hide")
+	if (e.className == 'hide')
 	{
-		e.className = "off";
+		e.className = 'off';
 		setTimeout(function()
 		{
-			e.className = "on";
+			e.className = 'on';
 		}, 150);
 	}
 	else if (!show)
 	{
-		e.className = "off";
+		e.className = 'off';
 		setTimeout(function()
 		{
-			e.className = "hide";
+			e.className = 'hide';
 		}, 1000);
 	}
 }

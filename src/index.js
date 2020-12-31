@@ -3,6 +3,8 @@ var set_locked = false;
 
 function onLoad()
 {
+	$.ajaxSetup({ 'timeout': 2500 });
+
 	$.when
 	(
 		$.getJSON('plot.json'),
@@ -21,8 +23,9 @@ function onLoad()
 		{
 			cn = plot.data.datasets.length;
 
-			x.borderColor = pl_colors[cn];
 			x.fill = false;
+			x.borderColor = pl_colors[cn];
+			x.cubicInterpolationMode = 'monotone'
 
 			for (j = 0; j < x.data.length; ++j)
 			{
@@ -63,12 +66,14 @@ function onLoad()
 function onTemps(data)
 {
 	var table = '<table><tr><th>Miejsce</th><th>Wartość</th>';
-	var temp = 0.0;
+	var temp = null;
 
 	for (const k in data)
 	{
-		temp = Number(data[k]).toPrecision(3);
-		table += `<tr><td>${k}</td><td>${temp} ℃</td></tr>`;
+		if (!Number.isFinite(data[k])) temp = 'Brak danych';
+		else temp = Number(data[k]).toPrecision(3) + ' ℃';
+
+		table += `<tr><td>${k}</td><td>${temp}</td></tr>`;
 	}
 
 	$('#temps').html(table + '</table>');
@@ -77,10 +82,14 @@ function onTemps(data)
 function onSystem(data)
 {
 	var table = '<table><tr><th>Parametr</th><th>Wartość</th>';
+	var temp = null;
 
 	for (const k in data)
 	{
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`;
+		if (data[k] != null) temp = data[k];
+		else temp = 'Brak danych';
+
+		table += `<tr><td>${k}</td><td>${temp}</td></tr>`;
 	}
 
 	$('#system').html(table + '</table>');
@@ -91,13 +100,13 @@ function onEnable(param)
 	if (set_locked) return;
 	else set_locked = true;
 
-	showToast("Łączenie z urządzeniem...", 0);
+	showToast('Łączenie z urządzeniem...', 0);
 
-	$.when($.get("config", { power: param }))
+	$.when($.get('config', { power: param }))
 	.done(function()
 	{
 		$.getJSON('system.json', onSystem);
-		showToast("Sterowanie zaktualizowane", 5000);
+		showToast('Sterowanie zaktualizowane', 5000);
 
 		set_locked = false;
 	})
@@ -109,13 +118,13 @@ function onDriver(param)
 	if (set_locked) return;
 	else set_locked = true;
 
-	showToast("Łączenie z urządzeniem...", 0);
+	showToast('Łączenie z urządzeniem...', 0);
 
-	$.when($.get("config", { driver: param }))
+	$.when($.get('config', { driver: param }))
 	.done(function()
 	{
 		$.getJSON('system.json', onSystem);
-		showToast("Sterowanie zaktualizowane", 5000);
+		showToast('Sterowanie zaktualizowane', 5000);
 
 		set_locked = false;
 	})
@@ -124,6 +133,6 @@ function onDriver(param)
 
 function onError()
 {
-	showToast("Nie udało się wykonać zapytania", 5000);
+	showToast('Nie udało się wykonać zapytania', 5000);
 	set_locked = false;
 }

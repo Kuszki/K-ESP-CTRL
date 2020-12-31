@@ -1,20 +1,11 @@
 {
-	"logs":
+	"main":
 	{
-		"size": 25,
-		"age": 259200
-	},
-	"outdor":
-	{
-		"token": "",
-		"time": 1800,
-		"place": ""
-	},
-	"status":
-	{
-		"target": 20,
+		"target": 20.0,
 		"funct": 0,
-		"driver": 0
+		"driver": 0,
+		"minus": 0.75,
+		"plus": 0.75
 	},
 	"time":
 	{
@@ -23,15 +14,20 @@
 		"sync": 600,
 		"minon": 3600,
 		"minoff": 3600
-	}
-	"history":
+	},
+	"plot":
 	{
 		"size": 72,
 		"age": 259200
 	},
-	"hyster":
+	"logs":
 	{
-		"minus": 0.5,
-		"plus": 1
+		"size": 25,
+		"age": 259200
+	},
+	"outdor":
+	{
+		"token": "",
+		"place": ""
 	}
 }

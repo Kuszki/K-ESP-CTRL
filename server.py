@@ -5,8 +5,7 @@ from server import server
 from ntptime import settime
 from json import dumps
 
-p = Pin(5, Pin.OUT, value = 0)
-l = Pin(2, Pin.OUT, value = 0)
+p = Pin(25, Pin.OUT, value = 0)
 
 d = driver(p)
 s = server(80)

@@ -1,12 +1,12 @@
 # coding=UTF-8
 
-import time, ntptime, json, requests, os
+import time, ntptime, json, requests, os, gc
 
 class driver:
 
 	REQ = 'http://api.openweathermap.org/data/2.5/weather?units=metric&lang=pl&q=%s&appid=%s'
 
-	OBL = 'Obliczona'
+	CUR = 'Obliczona'
 	OUT = 'Zewnętrzna'
 
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
@@ -23,7 +23,8 @@ class driver:
 		{
 			0: 'Ustawiono sterowanie ręczne',
 			1: 'Ustawiono sterowanie automatyczne'
-		}
+		},
+		'boot': 'Włączono sterownik'
 	}
 
 	def __init__(self, out):
@@ -47,17 +48,23 @@ class driver:
 		try: settings = json.load(open('/etc/driver.json', 'r'))
 		except: settings = dict()
 
-		try: self.def_temp = settings['status']['target']
+		try: self.def_temp = settings['main']['target']
 		except: self.def_temp = 20.0
 
-		try: self.tar_temp = settings['status']['target']
+		try: self.tar_temp = settings['main']['target']
 		except: self.tar_temp = 20.0
 
-		try: self.driver = settings['status']['driver']
+		try: self.driver = settings['main']['driver']
 		except: self.driver = False
 
-		try: self.funct = settings['status']['funct']
+		try: self.funct = settings['main']['funct']
 		except: self.funct = 0
+
+		try: self.hplus = settings['main']['plus']
+		except: self.hplus = 0.75
+
+		try: self.hminus = settings['main']['minus']
+		except: self.hminus = 0.75
 
 		try: self.tzone = settings['time']['zone']
 		except: self.tzone = 0
@@ -74,16 +81,10 @@ class driver:
 		try: self.minoff = settings['time']['minoff']
 		except: self.minoff = 3600
 
-		try: self.hplus = settings['hyster']['plus']
-		except: self.hplus = 0.75
-
-		try: self.hminus = settings['hyster']['minus']
-		except: self.hminus = 0.75
-
-		try: self.psize = settings['history']['size']
+		try: self.psize = settings['plot']['size']
 		except: self.psize = 72
 
-		try: self.page = settings['history']['age']
+		try: self.page = settings['plot']['age']
 		except: self.page = 259200
 
 		try: self.lsize = settings['logs']['size']
@@ -92,14 +93,14 @@ class driver:
 		try: self.lage = settings['logs']['age']
 		except: self.lage = 259200
 
-		try: self.wtref = settings['outdor']['time']
-		except: self.wtref = 1800
-
 		try: self.wtok = settings['outdor']['token']
 		except: self.wtok = str()
 
 		try: self.wpla = settings['outdor']['place']
 		except: self.wpla = str()
+
+		self.ptime = int(self.page / self.psize)
+		self.ltime = int(self.lage / self.lsize)
 
 		self.temperatures = dict()
 
@@ -117,6 +118,7 @@ class driver:
 		self.tw_save = 0
 
 		self.out = out
+		self.out.off()
 
 	def save_settings(self):
 
@@ -133,56 +135,45 @@ class driver:
 		with open('/etc/jobs.json', 'w') as f:
 			json.dump(self.get_tasks(), f)
 
-	def save_history(self, t):
+	def save_history(self, t, now = None):
 
-		p_dt = self.page / self.psize
-		hist = os.listdir('/var')
-		now = self.get_time()
+		if now == None: now = self.get_time()
 
 		for k, y in t.items():
 
-			path = '/var/%s.var' % k
+			data = { 't': now, 'y': y }
+			path = '/var/' + k
+			save = True
+			v = dict()
 
-			if k + '.var' in hist:
-
+			try:
 				with open(path, 'r') as f:
 					v = json.load(f)
-					ch = False
 
-				if now - v['last'] >= p_dt:
-					v['data'].append({ 't': now, 'y': y })
-					v['last'] = now
-					ch = True
-
-				for h in v['data']:
-					if now - h['t'] >= self.page:
-						v['data'].remove(h)
-						ch = True
-
-				while len(v['data']) > self.psize:
-					v['data'].pop(0)
-					ch = True
-
-				if not len(v['data']):
-					os.remove(path)
-
-				elif ch:
-					with open(path, 'w') as f:
-						json.dump(v, f)
+			except:
+				v['label'] = k
+				v['last'] = now
+				v['data'] = [ data ]
 
 			else:
+				if now - v['last'] >= self.ptime:
 
-				with open('/var/%s.var' % k, 'w') as f: json.dump(\
-					{
-						'label': k, 'last': now,
-						'data': [{'t': now, 'y': y}]
-					}, f)
+					v['data'].append(data)
+					v['last'] = now
 
-	def save_logs(self, msg):
+				else: save = False
+
+			if save:
+				with open(path, 'w') as f:
+					json.dump(v, f)
+
+	def save_logs(self, msg, now = None):
+
+		if msg == None: os.remove('/etc/log.json'); return None
+		if now == None: now = self.get_time()
 
 		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: logs = list()
-		finally: now = self.get_time()
 
 		for v in logs:
 			if now - v['t'] >= self.lage:
@@ -201,6 +192,7 @@ class driver:
 
 		if self.power != power:
 
+			self.last_sw = self.get_time()
 			self.on_log('pwr', power)
 			self.power = power
 			self.out.value(power)
@@ -216,54 +208,56 @@ class driver:
 
 	def set_temps(self, v):
 
+		if self.CUR in v: del v[self.CUR]
+		if self.OUT in v: del v[self.OUT]
+
+		for k in v:
+
+			try: v[k] = float(v[k])
+			except: del v[k]
+
+			if 5.0 <= v[k] <= 35.0: pass
+			else: del v[k]
+
 		if not len(v): return False
-		for k in v: v[k] = float(v[k])
+		else: now = self.get_time()
 
 		self.temperatures.update(v)
 		self.curr_temp = self.get_calc()
-
-		v[self.OBL] = self.curr_temp
-		self.save_history(v)
+		self.save_history(v, now)
 
 		return True
 
 	def set_scheds(self, v):
 
 		if not len(v): return False
-
-		ok = True; num = 0
+		else: ok = True; num = 0
 
 		for k in v:
 
-			s = v[k].split(',')
-			num = num + 1
+			s = v[k]; k = int(k); num += 1
 
-			if len(s) == 5:
+			if 'del' in s and s['del']:
+
+				try: del self.schedules[k]
+				except: ok = False
+
+			elif len(s) == 5:
 
 				if not k in self.schedules:
 					self.schedules[k] = dict()
 
 				try:
 
-					self.schedules[k]['days'] = int(s[0])
-					self.schedules[k]['from'] = int(s[1])
-					self.schedules[k]['to'] = int(s[2])
-					self.schedules[k]['act'] = float(s[3])
-					self.schedules[k]['on'] = int(s[4])
+					self.schedules[k]['days'] = int(s['days'])
+					self.schedules[k]['from'] = int(s['from'])
+					self.schedules[k]['to'] = int(s['to'])
+					self.schedules[k]['act'] = float(s['act'])
+					self.schedules[k]['on'] = int(s['on'])
 
-				except:
+				except: ok = False
 
-					ok = False
-					num -= 1
-
-			elif v[k] == 'del':
-
-				del self.schedules[k]
-
-			else:
-
-				ok = False
-				num -= 1
+			else: ok = False; num -= 1
 
 		if ok and num: self.save_scheds()
 
@@ -272,37 +266,30 @@ class driver:
 	def set_tasks(self, v):
 
 		if not len(v): return False
-
-		ok = True; num = 0
+		else: ok = True; num = 0
 
 		for k in v:
 
-			s = v[k].split(',')
-			num = num + 1
+			s = v[k]; k = int(k); num += 1
 
-			if len(s) == 2:
+			if 'del' in s and s['del']:
+
+				try: del self.tasks[k]
+				except: ok = False
+
+			elif len(s) == 2:
 
 				if not k in self.tasks:
 					self.tasks[k] = dict()
 
 				try:
 
-					self.tasks[k]['when'] = int(s[0])
-					self.tasks[k]['job'] = int(s[1])
+					self.tasks[k]['when'] = int(s['when'])
+					self.tasks[k]['job'] = int(s['job'])
 
-				except:
+				except: ok = False
 
-					ok = False
-					num -= 1
-
-			elif v[k] == 'del':
-
-				del self.tasks[k]
-
-			else:
-
-				ok = False
-				num -= 1
+			else: ok = False; num -= 1
 
 		if ok and num: self.save_tasks()
 
@@ -347,6 +334,7 @@ class driver:
 
 				if 30 <= val <= 150:
 					self.psize = val
+					self.ptime = int(self.page / self.psize)
 					num = num + 1
 				else: ok = False
 
@@ -356,6 +344,17 @@ class driver:
 
 				if 1 <= val <= 5:
 					self.page = val * 86400
+					self.psize = int(self.page / self.ptime)
+					num = num + 1
+				else: ok = False
+
+			if 'ptime' in v:
+
+				val = int(v['ptime'])
+
+				if 15 <= val <= 180:
+					self.ptime = val * 60
+					self.psize = int(self.page / self.ptime)
 					num = num + 1
 				else: ok = False
 
@@ -365,6 +364,7 @@ class driver:
 
 				if 10 <= val <= 100:
 					self.lsize = val
+					self.ltime = int(self.lage / self.lsize)
 					num = num + 1
 				else: ok = False
 
@@ -374,15 +374,7 @@ class driver:
 
 				if 1 <= val <= 10:
 					self.lage = val * 86400
-					num = num + 1
-				else: ok = False
-
-			if 'wtref' in v:
-
-				val = int(v['wtref'])
-
-				if 30 <= val <= 360:
-					self.wtref = val * 60
+					self.ltime = int(self.lage / self.lsize)
 					num = num + 1
 				else: ok = False
 
@@ -466,6 +458,11 @@ class driver:
 				self.save_settings()
 				num = num + 1
 
+			if 'rmlogs' in v:
+
+				self.save_logs(None)
+				num = num + 1
+
 		finally: return ok and num
 
 	def get_calc(self):
@@ -489,13 +486,9 @@ class driver:
 
 	def get_temps(self):
 
-		tmp = \
-		{
-			self.OBL: self.curr_temp,
-			self.OUT: self.out_temp
-		}
-
-		tmp.update(self.temperatures)
+		tmp = self.temperatures.copy()
+		tmp[self.CUR] = self.curr_temp
+		tmp[self.OUT] = self.out_temp
 
 		return tmp
 
@@ -531,32 +524,24 @@ class driver:
 
 			'page': int(self.page / 86400),
 			'lage': int(self.lage / 86400),
+			'ptime': int(self.ptime / 60),
 
 			'sync': int(self.sync / 60),
 			'minoff': int(self.minoff / 60),
-			'minon': int(self.minon / 60),
-			'wtref': int(self.wtref / 60)
+			'minon': int(self.minon / 60)
 		}
 
 	def get_conf(self):
 
 		return \
 		{
-			'history':
-			{
-				'size': self.psize,
-				'age': self.page
-			},
-			'logs':
-			{
-				'size': self.lsize,
-				'age': self.lage
-			},
-			'status':
+			'main':
 			{
 				'driver': self.driver,
 				'target': self.def_temp,
-				'funct': self.funct
+				'funct': self.funct,
+				'plus': self.hplus,
+				'minus': self.hminus
 			},
 			'time':
 			{
@@ -566,16 +551,20 @@ class driver:
 				'minon': self.minon,
 				'minoff': self.minoff
 			},
-			'hyster':
-			{
-				'plus': self.hplus,
-				'minus': self.hminus
-			},
 			'outdor':
 			{
-				'time': self.wtref,
 				'token': self.wtok,
 				'place': self.wpla
+			},
+			'plot':
+			{
+				'size': self.psize,
+				'age': self.page
+			},
+			'logs':
+			{
+				'size': self.lsize,
+				'age': self.lage
 			}
 		}
 
@@ -605,7 +594,7 @@ class driver:
 
 	def get_drive(self):
 
-		if self.curr_temp == None: return self.power
+		if self.curr_temp == None: return False
 
 		tplus = self.tar_temp + self.hplus
 		tminus = self.tar_temp - self.hminus
@@ -635,7 +624,9 @@ class driver:
 
 	def on_task(self, t):
 
-		v = self.tasks; dt = 30; n = 0
+		v = self.tasks
+		dt = self.loop
+		save = False
 
 		driver = self.driver
 		power = self.power
@@ -645,16 +636,18 @@ class driver:
 			when = v[k]['when']
 			job = v[k]['job']
 
-			if t - when > 3*dt: del v[k]; n += 1
-			elif t - when > 0:
+			if t - when > 3*dt:
+				del v[k]; save = True
+
+			elif t - when >= 0:
 
 				if job == 0: power = 0; driver = 0
 				elif job == 1: power = 1; driver = 0
 				elif job == 2: driver = 1
 
-				del v[k]; n = n + 1
+				del v[k]; save = True
 
-		if n: self.save_tasks()
+		if save: self.save_tasks()
 
 		return driver, power
 
@@ -669,10 +662,8 @@ class driver:
 		d = t[6]; m = 60*t[3] + t[4]
 		dm = 6 if d == 0 else d - 1
 
-		target = 0
-		found = False
-		dis = False
-		en = False
+		found = False; target = 0.0
+		dis = False; en = False
 
 		for k in self.schedules.values():
 
@@ -718,26 +709,43 @@ class driver:
 
 	def on_hist(self, now):
 
-		for l in os.listdir('/var'):
+		null = { 't': now, 'y': None }
+		hist = os.listdir('/var')
+		saves = dict()
 
-			path = '/var/' + l; ch = False
+		if self.curr_temp != None:
+			saves[self.CUR] = self.curr_temp
 
-			with open(path, 'r') as f: v = json.load(f)
+		if self.out_temp != None:
+			saves[self.OUT] = self.out_temp
+
+		if len(saves):
+			self.save_history(saves, now)
+
+		for l in hist:
+
+			path = '/var/' + l
+
+			with open(path, 'r') as f:
+				v = json.load(f)
+
+			if now - v['last'] >= self.ptime:
+
+				if l in self.temperatures:
+					del self.temperatures[l]
+
+				if v['data'][-1]['y'] != None:
+					v['data'].append(null)
 
 			for h in v['data']:
 				if now - h['t'] >= self.page:
 					v['data'].remove(h)
-					ch = True
 
 			while len(v['data']) > self.psize:
 				v['data'].pop(0)
-				ch = True
 
-			if not len(v['data']):
-				os.remove(path)
-				ch = False
-
-			if ch:
+			if not len(v['data']): os.remove(path)
+			else:
 				with open(path, 'w') as f:
 					json.dump(v, f)
 
@@ -755,17 +763,52 @@ class driver:
 		with open('/etc/log.json', 'w') as f:
 			json.dump(logs, f)
 
+	def on_outdor(self, now):
+
+		if not self.wtok or not self.wpla:
+
+			self.out_temp = None
+			self.out_wet = None
+			self.tw_save = 0
+
+			return None
+
+		try:
+
+			req = self.REQ % (self.wpla, self.wtok)
+			ans = requests.get(req).json()
+
+			wet = ans['weather'][0]['description']
+			temp = ans['main']['temp']
+
+			self.out_wet = wet[0].upper() + wet[1:]
+			self.out_temp = temp
+
+		except:
+
+			self.out_temp = None
+			self.out_wet = None
+			self.tw_save = 0
+
+	def on_log(self, cat, stat = None):
+
+		if cat in self.LOGS and stat in self.LOGS[cat]:
+			self.save_logs(self.LOGS[cat][stat])
+		else: self.save_logs(cat)
+
 	def on_loop(self):
 
-		now = self.get_time()
+		if time.time() - self.last_loop >= self.loop:
 
-		if now - self.last_loop >= self.loop:
+			self.curr_temp = self.get_calc()
+			self.last_loop = self.get_time()
 
-			self.last_loop = now
-
+			now = self.last_loop
 			driver = self.driver
 			power = self.power
 			target = self.tar_temp
+
+			gc.collect()
 
 		else: return None
 
@@ -791,50 +834,18 @@ class driver:
 			self.last_sw = now
 			self.set_power(power)
 
-		if now - self.tp_save >= self.page:
+		if now - self.tw_save >= self.ptime:
+			self.tw_save = now
+			self.on_outdor(now)
+
+		if now - self.tp_save >= self.ptime:
 			self.tp_save = now
 			self.on_hist(now)
 
-		if now - self.tl_save >= self.lage:
+		if now - self.tl_save >= self.ltime:
 			self.tl_save = now
 			self.on_logs(now)
 
-		if now - self.tw_save >= self.wtref:
-			self.tw_save = now
-			self.on_outdor()
-
-	def on_outdor(self):
-
-		if not self.wtok or not self.wpla:
-
-			self.out_temp = None
-			self.out_wet = None
-			self.tw_save = 0
-
-			return None
-
-		try:
-
-			req = self.REQ % (self.wpla, self.wtok)
-			ans = requests.get(req).json()
-
-			wet = ans['weather'][0]['description']
-			temp = ans['main']['temp']
-
-			self.out_wet = wet[0].upper() + wet[1:]
-			self.out_temp = temp
-
-			self.save_history({ 'Zewnętrzna': temp })
-
-		except:
-
-			self.out_temp = None
-			self.out_wet = None
-			self.tw_save = 0
-
-	def on_log(self, cat, stat = None):
-
-		if cat in self.LOGS and stat in self.LOGS[cat]:
-			self.save_logs(self.LOGS[cat][stat])
-		else: self.save_logs(cat)
+		if not len(self.temperatures):
+			self.curr_temp = None
 

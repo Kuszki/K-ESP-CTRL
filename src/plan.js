@@ -8,17 +8,19 @@ function onSchedsLoad(data)
 
 function onSchedsAppend(id, data)
 {
+	id = Number(id); if (id.isNaN()) return;
+
 	var sec = getElem('scheds');
 
-	var form = genElem("form");
-	var tab = genElem("table");
-	var row = genElem("tr");
+	var form = genElem('form');
+	var tab = genElem('table');
+	var row = genElem('tr');
 
 	var sid = '[' + id + ']';
 
 	var cols = []; for (i = 0; i < 9; ++i)
 	{
-		col = genElem("td");
+		col = genElem('td');
 		appCh(row, col);
 		cols.push(col);
 	}
@@ -40,7 +42,7 @@ function onSchedsAppend(id, data)
 
 	for (k in sets)
 	{
-		var opt = genElem("option");
+		var opt = genElem('option');
 		opt.innerText = sets[k];
 		opt.value = k;
 		appCh(sact, opt);
@@ -48,7 +50,7 @@ function onSchedsAppend(id, data)
 
 	for (t = 15.0; t <= 25.0; t += 0.25)
 	{
-		var opt = genElem("option");
+		var opt = genElem('option');
 		opt.innerText = t + ' ℃';
 		opt.value = t;
 		appCh(sact, opt);
@@ -115,7 +117,7 @@ function onSchedsRemove(id)
 	var n = sh_add.indexOf(id);
 
 	if (n > -1) sh_add.splice(n, 1);
-	else sh_del.push(id);
+	else sh_del.push(Number(id));
 }
 
 function onSchedsSave()
@@ -126,7 +128,7 @@ function onSchedsSave()
 	var sec = getElem('scheds').children;
 	var req = {}, ch = false, ok = true;
 
-	for (k in sh_del) { req[sh_del[k]] = 'del'; ch = true; }
+	for (k in sh_del) { req[sh_del[k]] = { 'del': true }; ch = true; }
 	for (i = 0; i < sec.length; ++i)
 	{
 		var id = sec[i].id.replace('sched_', '');
@@ -145,18 +147,18 @@ function onSchedsSave()
 		var eto = getElem('to' + sid);
 		var eact = getElem('act' + sid);
 
-		var from = efrom.valueAsNumber / 60000;
-		var to = eto.valueAsNumber / 60000;
-		var act = eact.value;
+		var from = Number(efrom.valueAsNumber / 60000);
+		var to = Number(eto.valueAsNumber / 60000);
+		var act = Number(eact.value);
 
-		ok = ok &&
+		ok = ok && (from != to) &&
 			efrom.validity.valid &&
 			eto.validity.valid &&
 			eact.validity.valid;
 
 		if (org == null || org.days != mask || org.from != from || org.to != to || org.act != act || org.on != on)
 		{
-			req[id] = mask + ',' + from + ',' + to + ',' + act + ',' + on; ch = true;
+			req[id] = { 'days': mask, 'from': from, 'to': to, 'act': act, 'on': on }; ch = true;
 		}
 	}
 
@@ -172,7 +174,13 @@ function onSchedsSave()
 		showToast('Zadane parametry są niepoprawne', 5000);
 		set_locked = false;
 	}
-	else $.when($.get('schedup', req))
+	else $.when($.ajax(
+	{
+		'url': 'schedup',
+		'type': 'POST',
+		'contentType': 'application/json',
+		'data': JSON.stringify(req)
+	}))
 	.done(function()
 	{
 		showToast('Harmonogram został zapisany', 5000);

@@ -3,6 +3,8 @@ var cf_org = null;
 
 function onLoad()
 {
+	$.ajaxSetup({ 'timeout': 2500 });
+
 	$.when($.getJSON('prefs.json', onPrefs))
 	.done(function(data) { cf_org = data; })
 	.fail(function()
@@ -35,7 +37,7 @@ function onSave()
 		}
 	}
 
-	if (ch && ok) showToast("Zapisywanie ustawień...", 0);
+	if (ch && ok) showToast('Zapisywanie ustawień...', 0);
 
 	if (!ok)
 	{
@@ -47,7 +49,13 @@ function onSave()
 		showToast('Brak zmian do zapisania', 5000);
 		set_locked = false;
 	}
-	else $.when($.get('config', data))
+	else $.when($.ajax(
+	{
+		'url': 'config',
+		'type': 'POST',
+		'contentType': 'application/json',
+		'data': JSON.stringify(data)
+	}))
 	.done(function()
 	{
 		showToast('Ustawienia zostały zapisane', 5000);
@@ -91,20 +99,20 @@ function onPrefs(data)
 function onExpand(tree)
 {
 	var e = document.getElementById(tree);
-	if (e != null) if (e.className == "hide")
+	if (e != null) if (e.className == 'hide')
 	{
-		e.className = "off";
+		e.className = 'off';
 		setTimeout(function()
 		{
-			e.className = "on";
+			e.className = 'on';
 		}, 150);
 	}
 	else
 	{
-		e.className = "off";
+		e.className = 'off';
 		setTimeout(function()
 		{
-			e.className = "hide";
+			e.className = 'hide';
 		}, 1000);
 	}
 }

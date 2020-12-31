@@ -1,15 +1,15 @@
 {
 	"driver":	1,
-	"target":	19,
+	"target":	20,
 	"funct":	0,
 	"tzone":	1,
-	"hplus":	1,
-	"hminus":	2,
-	"psize":	150,
+	"hplus":	0.75,
+	"hminus":	0.75,
+	"psize":	72,
 	"page":	3,
-	"lsize":	50,
-	"lage":	5,
-	"wtref":	60,
+	"ptime":	60,
+	"lsize":	25,
+	"lage":	3,
 	"wtok":	"",
 	"wpla":	""
 }

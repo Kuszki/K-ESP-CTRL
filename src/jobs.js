@@ -8,15 +8,17 @@ function onTasksLoad(data)
 
 function onTasksAppend(id, data)
 {
+	id = Number(id); if (id.isNaN()) return;
+
 	var sec = getElem('tasks');
 
-	var form = genElem("form");
-	var tab = genElem("table");
-	var row = genElem("tr");
+	var form = genElem('form');
+	var tab = genElem('table');
+	var row = genElem('tr');
 
 	var cols = []; for (i = 0; i < 5; ++i)
 	{
-		col = genElem("td");
+		col = genElem('td');
 		appCh(row, col);
 		cols.push(col);
 	}
@@ -32,7 +34,7 @@ function onTasksAppend(id, data)
 
 	for (k in acts)
 	{
-		var opt = genElem("option");
+		var opt = genElem('option');
 		opt.innerText = acts[k];
 		opt.value = k;
 		appCh(sact, opt);
@@ -90,7 +92,7 @@ function onTasksRemove(id)
 	var n = ta_add.indexOf(id);
 
 	if (n > -1) ta_add.splice(n, 1);
-	else ta_del.push(id);
+	else ta_del.push(Number(id));
 }
 
 function onTasksSave()
@@ -101,10 +103,11 @@ function onTasksSave()
 	var sec = getElem('tasks').children;
 	var req = {}, ch = false, ok = true;
 
-	for (k in ta_del) { req[ta_del[k]] = 'del'; ch = true; }
+	for (k in ta_del) { req[ta_del[k]] = { 'del': true }; ch = true; }
 	for (i = 0; i < sec.length; ++i)
 	{
-		var id = sec[i].id.replace('task_', '');
+		var id = Number(sec[i].id.replace('task_', ''));
+
 		var sid = '[' + id + ']';
 		var org = ta_org[id];
 
@@ -112,10 +115,10 @@ function onTasksSave()
 		var edate = getElem('dwhen' + sid);
 		var etime = getElem('twhen' + sid);
 
-		var job = ejob.value;
-		var when =
+		var job = Number(ejob.value);
+		var when = Number(
 			(edate.valueAsNumber - off) / 1000 +
-			etime.valueAsNumber / 1000;
+			etime.valueAsNumber / 1000);
 
 		ok = ok &&
 			ejob.validity.valid &&
@@ -124,7 +127,7 @@ function onTasksSave()
 
 		if (org == null || org.when != when || org.job != job)
 		{
-			req[id] = when + ',' + job; ch = true;
+			req[id] = { 'when': when, 'job': job }; ch = true;
 		}
 	}
 
@@ -140,7 +143,13 @@ function onTasksSave()
 		showToast('Zadane parametry są niepoprawne', 5000);
 		set_locked = false;
 	}
-	else	$.when($.get('taskup', req))
+	else	$.when($.ajax(
+	{
+		'url': 'taskup',
+		'type': 'POST',
+		'contentType': 'application/json',
+		'data': JSON.stringify(req)
+	}))
 	.done(function()
 	{
 		showToast('Zdarzenia zostały zapisane', 5000);
