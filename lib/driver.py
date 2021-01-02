@@ -236,11 +236,9 @@ class driver:
 	def set_scheds(self, v):
 
 		if not len(v): return False
-		else: ok = True; num = 0
+		else: ok = True
 
-		for k in v:
-
-			s = v[k]; k = int(k); num += 1
+		for k, s in v.items():
 
 			if 'del' in s and s['del']:
 
@@ -262,20 +260,18 @@ class driver:
 
 				except: ok = False
 
-			else: ok = False; num -= 1
+			else: ok = False
 
-		if ok and num: self.save_scheds()
+		if ok: self.save_scheds()
 
-		return ok and num
+		return ok
 
 	def set_tasks(self, v):
 
 		if not len(v): return False
-		else: ok = True; num = 0
+		else: ok = True
 
-		for k in v:
-
-			s = v[k]; k = int(k); num += 1
+		for k, s in v.items():
 
 			if 'del' in s and s['del']:
 
@@ -294,11 +290,11 @@ class driver:
 
 				except: ok = False
 
-			else: ok = False; num -= 1
+			else: ok = False
 
-		if ok and num: self.save_tasks()
+		if ok: self.save_tasks()
 
-		return ok and num
+		return ok
 
 	def set_params(self, v):
 
@@ -468,7 +464,7 @@ class driver:
 				self.save_logs(None)
 				num = num + 1
 
-		finally: return ok and num
+		finally: return ok and (num == len(v))
 
 	def get_calc(self):
 
