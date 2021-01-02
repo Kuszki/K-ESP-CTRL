@@ -120,6 +120,9 @@ class driver:
 		self.out = out
 		self.out.off()
 
+		del settings
+		gc.collect()
+
 	def save_settings(self):
 
 		with open('/etc/driver.json', 'w') as f:
@@ -143,8 +146,8 @@ class driver:
 
 			data = { 't': now, 'y': y }
 			path = '/var/' + k
-			save = True
 			v = dict()
+			save = True
 
 			try:
 				with open(path, 'r') as f:
@@ -167,6 +170,8 @@ class driver:
 				with open(path, 'w') as f:
 					json.dump(v, f)
 
+			del v, path, data
+
 	def save_logs(self, msg, now = None):
 
 		if msg == None: os.remove('/etc/log.json'); return None
@@ -179,9 +184,9 @@ class driver:
 			if now - v['t'] >= self.lage:
 				logs.remove(v)
 
-		while len(logs) >= self.lsize: logs.pop(0)
+		while len(logs) >= self.lsize: logs.pop(-1)
 
-		logs.append({ 't': now, 'msg': msg })
+		logs.insert(0, { 't': now, 'msg': msg })
 
 		with open('/etc/log.json', 'w') as f:
 			json.dump(logs, f)
@@ -472,10 +477,9 @@ class driver:
 		else: t = sorted(self.temperatures.values())
 
 		l = len(self.temperatures)
+		i = (l - 1) // 2
 
 		if self.funct == 1:
-
-			i = (l - 1) // 2
 
 			if (l % 2): return t[i]
 			else: return (t[i] + t[i+1])/2
@@ -497,12 +501,18 @@ class driver:
 		dt = time.time() + self.tzone * 3600
 		t = time.localtime(dt)[0:6]
 
+		if self.driver == 0: suf = self.DRIVER[0]
+		else:
+			if self.tar_temp == 100.0: suf = self.POWER[True]
+			elif self.tar_temp == 0.0: suf = self.POWER[False]
+			else: suf = '%s ℃' % self.tar_temp
+
 		return \
 		{
 			'Godzina': '%d:%02d:%02d' % (t[3], t[4], t[5]),
 			'Data': '%02d.%02d.%d' % (t[2], t[1], t[0]),
 			'Status': self.POWER[bool(self.power)],
-			'Sterowanie': self.DRIVER[self.driver],
+			'Sterowanie': suf,
 			'Pogoda': self.out_wet
 		}
 
@@ -749,6 +759,8 @@ class driver:
 				with open(path, 'w') as f:
 					json.dump(v, f)
 
+			del v, path
+
 	def on_logs(self, now):
 
 		try: logs = json.load(open('/etc/log.json', 'r'))
@@ -758,7 +770,7 @@ class driver:
 			if now - v['t'] >= self.lage:
 				logs.remove(v)
 
-		while len(logs) > self.lsize: logs.pop(0)
+		while len(logs) > self.lsize: logs.pop(-1)
 
 		with open('/etc/log.json', 'w') as f:
 			json.dump(logs, f)
@@ -808,8 +820,6 @@ class driver:
 			power = self.power
 			target = self.tar_temp
 
-			gc.collect()
-
 		else: return None
 
 		if power: swok = now - self.last_sw >= self.minon
@@ -817,6 +827,7 @@ class driver:
 
 		if len(self.tasks) > 0:
 			driver, power = self.on_task(now)
+			swok = power != self.power
 
 		if self.driver != 0:
 			target = self.on_schedule(now)
@@ -841,10 +852,12 @@ class driver:
 		if now - self.tp_save >= self.ptime:
 			self.tp_save = now
 			self.on_hist(now)
+			gc.collect()
 
 		if now - self.tl_save >= self.ltime:
 			self.tl_save = now
 			self.on_logs(now)
+			gc.collect()
 
 		if not len(self.temperatures):
 			self.curr_temp = None

@@ -66,14 +66,31 @@ function onLoad()
 function onTemps(data)
 {
 	var table = '<table><tr><th>Miejsce</th><th>Wartość</th>';
+	var keys = Object.keys(data).sort();
 	var temp = null;
 
-	for (const k in data)
+	var i = keys.indexOf('Obliczona');
+	if (i != -1)
 	{
-		if (!Number.isFinite(data[k])) temp = 'Brak danych';
-		else temp = Number(data[k]).toPrecision(3) + ' ℃';
+		keys.splice(i, 1);
+		keys.unshift('Obliczona');
+	}
 
-		table += `<tr><td>${k}</td><td>${temp}</td></tr>`;
+	var j = keys.indexOf('Zewnętrzna');
+	if (j != -1)
+	{
+		keys.splice(j, 1);
+		keys.push('Zewnętrzna');
+	}
+
+	for (const k in keys)
+	{
+		temp = data[keys[k]];
+
+		if (!Number.isFinite(temp)) temp = 'Brak danych';
+		else temp = Number(temp).toPrecision(3) + ' ℃';
+
+		table += `<tr><td>${keys[k]}</td><td>${temp}</td></tr>`;
 	}
 
 	$('#temps').html(table + '</table>');
