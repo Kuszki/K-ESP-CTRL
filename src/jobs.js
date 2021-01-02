@@ -8,7 +8,7 @@ function onTasksLoad(data)
 
 function onTasksAppend(id, data)
 {
-	id = Number(id); if (id.isNaN()) return;
+	id = Number(id); if (Number.isNaN(id)) return;
 
 	var sec = getElem('tasks');
 

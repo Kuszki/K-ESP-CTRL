@@ -13,14 +13,14 @@ function onLoad()
 {
 	$.ajaxSetup({ 'timeout': 2500 });
 
-	$.when($.getJSON('plan.json', onSchedsLoad))
+	$.when($.getJSON('scheds.json', onSchedsLoad))
 	.done(function(data) { sh_org = data; })
 	.fail(function()
 	{
 		showToast('Nie udało się wczytać harmonohramu', 5000);
 	});
 
-	$.when($.getJSON('jobs.json', onTasksLoad))
+	$.when($.getJSON('tasks.json', onTasksLoad))
 	.done(function(data) { ta_org = data; })
 	.fail(function()
 	{

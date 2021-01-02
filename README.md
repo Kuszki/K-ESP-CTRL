@@ -1,5 +1,5 @@
 # K-ESP-CTRL
-ESP8266 home heat system driver
+ESP8266/ESP32 home heat system driver
 
 # Features
 
@@ -7,3 +7,4 @@ ESP8266 home heat system driver
 - Monitor local temperatures
 - Provide HTTP interface
 - Plot data using Chart JS
+- Many features and options
