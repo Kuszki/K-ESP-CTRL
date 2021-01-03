@@ -71,9 +71,10 @@ function onTasksAdd()
 	if (set_locked) return;
 	else set_locked = true;
 
-	$.when($.get('genid.html?task'))
+	$.when($.get('genid.var?task'))
 	.done(function(data)
 	{
+		ta_add.push(Number(data));
 		onExpand('tasks', true);
 		onTasksAppend(data, {});
 		set_locked = false;
@@ -87,12 +88,13 @@ function onTasksAdd()
 
 function onTasksRemove(id)
 {
+	id = Number(id);
 	getElem('task_' + id).remove();
 
 	var n = ta_add.indexOf(id);
 
 	if (n > -1) ta_add.splice(n, 1);
-	else ta_del.push(Number(id));
+	else ta_del.push(id);
 }
 
 function onTasksSave()

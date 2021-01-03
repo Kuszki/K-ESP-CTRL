@@ -95,12 +95,12 @@ function onSchedsAdd()
 	if (set_locked) return;
 	else set_locked = true;
 
-	$.when($.get('genid.html?sched'))
+	$.when($.get('genid.var?sched'))
 	.done(function(data)
 	{
+		sh_add.push(Number(data));
 		onExpand('scheds', true);
 		onSchedsAppend(data, {});
-		sh_add.push(data);
 		set_locked = false;
 	})
 	.fail(function()
@@ -112,12 +112,13 @@ function onSchedsAdd()
 
 function onSchedsRemove(id)
 {
+	id = Number(id);
 	getElem('sched_' + id).remove();
 
 	var n = sh_add.indexOf(id);
 
 	if (n > -1) sh_add.splice(n, 1);
-	else sh_del.push(Number(id));
+	else sh_del.push(id);
 }
 
 function onSchedsSave()

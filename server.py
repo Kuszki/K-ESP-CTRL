@@ -16,8 +16,7 @@ s.set_slite('prefs.json', lambda v: dumps(d.get_params()))
 s.set_slite('scheds.json', lambda v: dumps(d.get_scheds()))
 s.set_slite('tasks.json', lambda v: dumps(d.get_tasks()))
 s.set_slite('history.json', lambda v: dumps(d.get_hist()))
-
-s.set_slite('genid.html', lambda v: d.get_uids(v))
+s.set_slite('genid.var', lambda v: d.get_uids(v))
 
 s.set_callback('config', lambda v: d.set_params(v))
 s.set_callback('tempup', lambda v: d.set_temps(v))
