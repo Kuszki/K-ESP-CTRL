@@ -2,7 +2,7 @@ var days = {'pn': 'PN', 'wt': 'WT', 'sr': 'ŚR', 'cz': 'CZ', 'pt': 'PT', 'so': '
 var acts = {'0': 'Wyłącz + Ręczne', '1': 'Włącz + Ręczne', '2': 'Automatyczne' };
 var sets = {'0': 'Wyłącz', '100': 'Włącz' };
 
-var off = 2*Date.UTC(2000, 0, 1) - (new Date(2000, 0, 1)).getTime();
+const off = 2*Date.UTC(2000, 0, 1) - new Date(2000, 0, 1);
 var set_locked = false;
 
 var sh_org = null, ta_org = null;

@@ -48,6 +48,7 @@ put css/main.css
 put css/tabs.css
 put css/sets.css
 put css/jobs.css
+put css/logs.css
 put css/toast.css
 
 put src/index.js
