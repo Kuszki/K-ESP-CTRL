@@ -8,22 +8,20 @@ from json import dumps
 p = Pin(25, Pin.OUT, value = 0)
 
 d = driver(p)
-s = server(80)
+s = server()
 
-s.set_slite('temps.json', lambda v: dumps(d.get_temps()))
-s.set_slite('system.json', lambda v: dumps(d.get_status()))
-s.set_slite('prefs.json', lambda v: dumps(d.get_params()))
-s.set_slite('scheds.json', lambda v: dumps(d.get_scheds()))
-s.set_slite('tasks.json', lambda v: dumps(d.get_tasks()))
-s.set_slite('history.json', lambda v: dumps(d.get_hist()))
-s.set_slite('genid.var', lambda v: d.get_uids(v))
+s.defslite('temps.json', lambda v: dumps(d.get_temps()))
+s.defslite('system.json', lambda v: dumps(d.get_status()))
+s.defslite('prefs.json', lambda v: dumps(d.get_params()))
+s.defslite('scheds.json', lambda v: dumps(d.get_scheds()))
+s.defslite('tasks.json', lambda v: dumps(d.get_tasks()))
+s.defslite('history.json', lambda v: dumps(d.get_hist()))
+s.defslite('genid.var', lambda v: d.get_uids(v))
 
-s.set_callback('config', lambda v: d.set_params(v))
-s.set_callback('tempup', lambda v: d.set_temps(v))
-s.set_callback('schedup', lambda v: d.set_scheds(v))
-s.set_callback('taskup', lambda v: d.set_tasks(v))
-
-s.start()
+s.defslite('config', lambda v: d.set_params(v))
+s.defslite('tempup', lambda v: d.set_temps(v))
+s.defslite('schedup', lambda v: d.set_scheds(v))
+s.defslite('taskup', lambda v: d.set_tasks(v))
 
 while True:
 

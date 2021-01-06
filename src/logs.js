@@ -82,26 +82,24 @@ function onClear()
 	else set_locked = true;
 
 	$.when($.get('config', { 'rmlogs': true }))
-	.done(function()
+	.done(function(msg)
 	{
-		$('#log').html('<table></table>');
+		if (msg != "True") { onError(); return; }
 
+		$('#log').html('<table></table>');
 		showToast('Usunięto historię zdarzeń', 5000);
+
 		set_locked = false;
 	})
-	.fail(onError);
-}
-
-function onError()
-{
-	showToast('Nie udało się wykonać zapytania', 5000);
-	set_locked = false;
+	.fail(function() { onError(); });
 }
 
 function onExpand(tree)
 {
 	var e = document.getElementById(tree);
-	if (e != null) if (e.className == 'hide')
+	if (e == null) return;
+
+	if (e.className == 'hide')
 	{
 		e.className = 'off';
 		setTimeout(function()
@@ -123,4 +121,10 @@ function onExpand(tree)
 			e.className = 'hide';
 		}, 1000);
 	}
+}
+
+function onError()
+{
+	showToast('Nie udało się wykonać zapytania', 5000);
+	set_locked = false;
 }

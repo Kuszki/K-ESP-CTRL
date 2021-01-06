@@ -298,7 +298,8 @@ class driver:
 
 	def set_params(self, v):
 
-		ok = True; num = 0
+		if not len(v): return False
+		else: ok = True; num = 0
 
 		try:
 

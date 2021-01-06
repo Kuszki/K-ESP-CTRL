@@ -55,8 +55,6 @@ put src/index.js
 put src/scheds.js
 put src/prefs.js
 put src/logs.js
-put src/plan.js
-put src/jobs.js
 put src/toast.js
 
 put etc/network.json

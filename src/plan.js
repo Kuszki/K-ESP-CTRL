@@ -10,28 +10,28 @@ function onSchedsAppend(id, data)
 {
 	id = Number(id); if (Number.isNaN(id)) return;
 
-	var sec = getElem('scheds');
-
-	var form = genElem('form');
-	var tab = genElem('table');
-	var row = genElem('tr');
+	var sec = document.getElementById('scheds');
+	var form = document.createElement('form');
+	var tab = document.createElement('table');
+	var row = document.createElement('tr');
 
 	var sid = '[' + id + ']';
 
 	var cols = []; for (i = 0; i < 9; ++i)
 	{
-		col = genElem('td');
-		appCh(row, col);
+		col = document.createElement('td');
+		row.appendChild(col);
 		cols.push(col);
 	}
 
 	var i = 0; for (k in days)
 	{
 		var cd = genItem(form, 'input', 'checkbox', k + sid);
-		cd.checked = data['days'] & (1 << i++);
-
 		var ld = genLabel(form, days[k], k + sid);
-		appCh(cols[1], cd);	appCh(cols[1], ld);
+
+		cd.checked = data['days'] & (1 << i++);
+		cols[1].appendChild(cd);
+		cols[1].appendChild(ld);
 	}
 
 	var lab = genLabel(form, '•', null, 'slab' + sid);
@@ -42,18 +42,18 @@ function onSchedsAppend(id, data)
 
 	for (k in sets)
 	{
-		var opt = genElem('option');
+		var opt = document.createElement('option');
 		opt.innerText = sets[k];
 		opt.value = k;
-		appCh(sact, opt);
+		sact.appendChild(opt);
 	}
 
 	for (t = 15.0; t <= 25.0; t += 0.25)
 	{
-		var opt = genElem('option');
+		var opt = document.createElement('option');
 		opt.innerText = t + ' ℃';
 		opt.value = t;
-		appCh(sact, opt);
+		sact.appendChild(opt);
 	}
 
 	lab.onclick = function()
@@ -77,15 +77,15 @@ function onSchedsAppend(id, data)
 	cols[4].innerText = '-';
 	cols[6].innerText = ':';
 
-	appCh(cols[0], lab);
-	appCh(cols[3], tfrom);
-	appCh(cols[5], tto);
-	appCh(cols[7], sact);
-	appCh(cols[8], bdel);
+	cols[0].appendChild(lab);
+	cols[3].appendChild(tfrom);
+	cols[5].appendChild(tto);
+	cols[7].appendChild(sact);
+	cols[8].appendChild(bdel);
 
-	appCh(tab, row);
-	appCh(form, tab);
-	appCh(sec, form);
+	tab.appendChild(row);
+	form.appendChild(tab);
+	sec.appendChild(form);
 
 	form.id = 'sched_' + id;
 }
@@ -105,17 +105,15 @@ function onSchedsAdd()
 	})
 	.fail(function()
 	{
-		showToast('Nie udało się uzyskać identyfikatora', 5000);
-		set_locked = false;
+		onError('id');
 	});
 }
 
 function onSchedsRemove(id)
 {
-	id = Number(id);
-	getElem('sched_' + id).remove();
+	document.getElementById('sched_' + id).remove();
 
-	var n = sh_add.indexOf(id);
+	const n = sh_add.indexOf(id);
 
 	if (n > -1) sh_add.splice(n, 1);
 	else sh_del.push(id);
@@ -126,7 +124,7 @@ function onSchedsSave()
 	if (set_locked) return;
 	else set_locked = true;
 
-	var sec = getElem('scheds').children;
+	var sec = document.getElementById('scheds').children;
 	var req = {}, ch = false, ok = true;
 
 	for (k in sh_del) { req[sh_del[k]] = { 'del': true }; ch = true; }
@@ -134,20 +132,20 @@ function onSchedsSave()
 	{
 		var id = sec[i].id.replace('sched_', '');
 		var sid = '[' + id + ']';
-		var org = sh_org[id];
-
-		var on = getElem('slab' + sid).innerText == '✓' ? 1 : 0;
+		var org = sh_last[id];
 
 		var mask = 0, j = 0; for (k in days)
 		{
-			var che = getElem(k + sid);
+			var che = document.getElementById(k + sid);
 			mask = mask | (che.checked << j++);
 		}
 
-		var efrom = getElem('from' + sid);
-		var eto = getElem('to' + sid);
-		var eact = getElem('act' + sid);
+		var eon = document.getElementById('slab' + sid);
+		var efrom = document.getElementById('from' + sid);
+		var eto = document.getElementById('to' + sid);
+		var eact = document.getElementById('act' + sid);
 
+		var on = eon.innerText == '✓' ? 1 : 0;
 		var from = Number(efrom.valueAsNumber / 60000);
 		var to = Number(eto.valueAsNumber / 60000);
 		var act = Number(eact.value);
@@ -157,24 +155,33 @@ function onSchedsSave()
 			eto.validity.valid &&
 			eact.validity.valid;
 
-		if (org == null || org.days != mask || org.from != from || org.to != to || org.act != act || org.on != on)
+		const sc =
 		{
-			req[id] = { 'days': mask, 'from': from, 'to': to, 'act': act, 'on': on }; ch = true;
+			'on': on,
+			'days': mask,
+			'act': act,
+			'from': from,
+			'to': to
+		};
+
+		const is_ch = org == null ||
+			sc.on != org.on ||
+			sc.days != org.days ||
+			sc.act != org.act ||
+			sc.from != org.from ||
+			sc.to != org.to;
+
+		if (is_ch)
+		{
+			req[id] = sc;
+			ch = true;
 		}
 	}
 
 	if (ch && ok) showToast('Zapisywanie zmian...', 0);
 
-	if (!ch)
-	{
-		showToast('Brak zmian do zapisania', 5000);
-		set_locked = false;
-	}
-	else if (!ok)
-	{
-		showToast('Zadane parametry są niepoprawne', 5000);
-		set_locked = false;
-	}
+	if (!ch) onError('nc');
+	else if (!ok) onError('val');
 	else $.when($.ajax(
 	{
 		'url': 'schedup',
@@ -182,21 +189,27 @@ function onSchedsSave()
 		'contentType': 'application/json',
 		'data': JSON.stringify(req)
 	}))
-	.done(function()
+	.done(function(msg)
 	{
-		showToast('Harmonogram został zapisany', 5000);
-		set_locked = false;
+		if (msg == "True")
+		{
+			onSchedsUpdate(req);
+			onDone('save_sch');
+		}
+		else
+		{
+			onError('save_sch');
+		}
 	})
 	.fail(function()
 	{
-		showToast('Nie udało się zapisać harmonogramu', 5000);
-		set_locked = false;
+		onError('save_sch');
 	});
 }
 
 function onSchedsReset()
 {
-	var sec = getElem('scheds').children;
+	var sec = document.getElementById('scheds').children;
 
 	while (sec.length) sec[0].remove();
 
@@ -204,4 +217,10 @@ function onSchedsReset()
 	else onSchedsLoad(sh_org);
 
 	onExpand('scheds', true);
+}
+
+function onSchedsUpdate(data)
+{
+	for (const k in data)
+		sh_last[k] = data[k];
 }

@@ -10,16 +10,15 @@ function onTasksAppend(id, data)
 {
 	id = Number(id); if (Number.isNaN(id)) return;
 
-	var sec = getElem('tasks');
-
-	var form = genElem('form');
-	var tab = genElem('table');
-	var row = genElem('tr');
+	var sec = document.getElementById('tasks');
+	var form = document.createElement('form');
+	var tab = document.createElement('table');
+	var row = document.createElement('tr');
 
 	var cols = []; for (i = 0; i < 5; ++i)
 	{
-		col = genElem('td');
-		appCh(row, col);
+		col = document.createElement('td');
+		row.appendChild(col);
 		cols.push(col);
 	}
 
@@ -34,10 +33,10 @@ function onTasksAppend(id, data)
 
 	for (k in acts)
 	{
-		var opt = genElem('option');
+		var opt = document.createElement('option');
 		opt.innerText = acts[k];
 		opt.value = k;
-		appCh(sact, opt);
+		sact.appendChild(opt);
 	}
 
 	bdel.onclick = function()
@@ -53,15 +52,15 @@ function onTasksAppend(id, data)
 
 	cols[2].innerText = ':';
 
-	appCh(cols[0], lab);
-	appCh(cols[1], dwhen);
-	appCh(cols[1], twhen);
-	appCh(cols[3], sact);
-	appCh(cols[4], bdel);
+	cols[0].appendChild(lab);
+	cols[1].appendChild(dwhen);
+	cols[1].appendChild(twhen);
+	cols[3].appendChild(sact);
+	cols[4].appendChild(bdel);
 
-	appCh(tab, row);
-	appCh(form, tab);
-	appCh(sec, form);
+	tab.appendChild(row);
+	form.appendChild(tab);
+	sec.appendChild(form);
 
 	form.id = 'task_' + id;
 }
@@ -81,15 +80,13 @@ function onTasksAdd()
 	})
 	.fail(function()
 	{
-		showToast('Nie udało się uzyskać identyfikatora', 5000);
-		set_locked = false;
+		onError('id');
 	});
 }
 
 function onTasksRemove(id)
 {
-	id = Number(id);
-	getElem('task_' + id).remove();
+	document.getElementById('task_' + id).remove();
 
 	var n = ta_add.indexOf(id);
 
@@ -102,7 +99,7 @@ function onTasksSave()
 	if (set_locked) return;
 	else set_locked = true;
 
-	var sec = getElem('tasks').children;
+	var sec = document.getElementById('tasks').children;
 	var req = {}, ch = false, ok = true;
 
 	for (k in ta_del) { req[ta_del[k]] = { 'del': true }; ch = true; }
@@ -111,11 +108,11 @@ function onTasksSave()
 		var id = Number(sec[i].id.replace('task_', ''));
 
 		var sid = '[' + id + ']';
-		var org = ta_org[id];
+		var org = ta_last[id];
 
-		var ejob = getElem('job' + sid);
-		var edate = getElem('dwhen' + sid);
-		var etime = getElem('twhen' + sid);
+		var ejob = document.getElementById('job' + sid);
+		var edate = document.getElementById('dwhen' + sid);
+		var etime = document.getElementById('twhen' + sid);
 
 		var job = Number(ejob.value);
 		var when = Number(
@@ -127,24 +124,27 @@ function onTasksSave()
 			edate.validity.valid &&
 			etime.validity.valid;
 
-		if (org == null || org.when != when || org.job != job)
+		const sc =
 		{
-			req[id] = { 'when': when, 'job': job }; ch = true;
+			'when': when,
+			'job': job
+		};
+
+		const is_ch = org == null ||
+			sc.when != org.when ||
+			sc.job != org.job;
+
+		if (is_ch)
+		{
+			req[id] = sc;
+			ch = true;
 		}
 	}
 
 	if (ch && ok) showToast('Zapisywanie zmian...', 0);
 
-	if (!ch)
-	{
-		showToast('Brak zmian do zapisania', 5000);
-		set_locked = false;
-	}
-	else if (!ok)
-	{
-		showToast('Zadane parametry są niepoprawne', 5000);
-		set_locked = false;
-	}
+	if (!ch) onError('nc');
+	else if (!ok) onError('val');
 	else	$.when($.ajax(
 	{
 		'url': 'taskup',
@@ -154,19 +154,25 @@ function onTasksSave()
 	}))
 	.done(function()
 	{
-		showToast('Zdarzenia zostały zapisane', 5000);
-		set_locked = false;
+		if (msg == "True")
+		{
+			onTasksUpdate(req);
+			onDone('save_tas');
+		}
+		else
+		{
+			onError('save_tas');
+		}
 	})
 	.fail(function()
 	{
-		showToast('Nie udało się zapisać zdarzeń', 5000);
-		set_locked = false;
+		onError('save_tas');
 	});
 }
 
 function onTasksReset()
 {
-	var sec = getElem('tasks').children;
+	var sec = document.getElementById('tasks').children;
 
 	while (sec.length) sec[0].remove();
 
@@ -174,4 +180,10 @@ function onTasksReset()
 	else onTasksLoad(ta_org);
 
 	onExpand('tasks', true);
+}
+
+function onTasksUpdate(data)
+{
+	for (const k in data)
+		ta_last[k] = data[k];
 }

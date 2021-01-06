@@ -1,15 +1,32 @@
+const errors =
+{
+	'load': 'Nie udało się wczytać ustawień',
+	'save': 'Nie udało się zapisać ustawień',
+	'val': 'Zadane parametry są niepoprawne',
+	'nc': 'Brak zmian do zapisania'
+};
+
+const dones =
+{
+	'save': 'Ustawienia zostały zapisane'
+};
+
+var cf_org, cf_last = null;
 var set_locked = false;
-var cf_org = null;
 
 function onLoad()
 {
 	$.ajaxSetup({ 'timeout': 2500 });
 
 	$.when($.getJSON('prefs.json', onPrefs))
-	.done(function(data) { cf_org = data; })
+	.done(function(data)
+	{
+		cf_org = Object.assign({}, data);
+		cf_last = Object.assign({}, data);
+	})
 	.fail(function()
 	{
-		showToast('Nie udało się wczytać ustawień', 5000);
+		onError('load');
 	});
 }
 
@@ -29,7 +46,7 @@ function onSave()
 
 	for (i = 0; i < f.length; ++i)
 	{
-		if (cf_org[f[i].id] != f[i].value)
+		if (cf_last[f[i].id] != f[i].value)
 		{
 			ok = ok && f[i].validity.valid;
 			data[f[i].id] = f[i].value;
@@ -39,16 +56,8 @@ function onSave()
 
 	if (ch && ok) showToast('Zapisywanie ustawień...', 0);
 
-	if (!ok)
-	{
-		showToast('Zadane parametry są niepoprawne', 5000);
-		set_locked = false;
-	}
-	else if (!ch)
-	{
-		showToast('Brak zmian do zapisania', 5000);
-		set_locked = false;
-	}
+	if (!ok) onError('val');
+	else if (!ch) onError('nc');
 	else $.when($.ajax(
 	{
 		'url': 'config',
@@ -56,15 +65,21 @@ function onSave()
 		'contentType': 'application/json',
 		'data': JSON.stringify(data)
 	}))
-	.done(function()
+	.done(function(msg)
 	{
-		showToast('Ustawienia zostały zapisane', 5000);
-		set_locked = false;
+		if (msg == 'True')
+		{
+			onUpdate(data);
+			onDone('save');
+		}
+		else
+		{
+			onError('save');
+		}
 	})
 	.fail(function()
 	{
-		showToast('Nie udało się zapisać ustawień', 5000);
-		set_locked = false;
+		onError('save');
 	});
 }
 
@@ -73,15 +88,15 @@ function onDefault(data)
 	if (set_locked) return;
 	else set_locked = true;
 
-	$.when($.getJSON('default.json', onPrefs))
-	.done(function()
+	$.when($.getJSON('default.json'))
+	.done(function(data)
 	{
+		onPrefs(data);
 		set_locked = false;
 	})
 	.fail(function()
 	{
-		showToast('Nie udało się wczytać wartości', 5000);
-		set_locked = false;
+		onError('load');
 	});
 }
 
@@ -99,7 +114,9 @@ function onPrefs(data)
 function onExpand(tree)
 {
 	var e = document.getElementById(tree);
-	if (e != null) if (e.className == 'hide')
+	if (e == null) return;
+
+	if (e.className == 'hide')
 	{
 		e.className = 'off';
 		setTimeout(function()
@@ -115,4 +132,32 @@ function onExpand(tree)
 			e.className = 'hide';
 		}, 1000);
 	}
+}
+
+function onUpdate(data)
+{
+	for (const k in data)
+		cf_last[k] = data[k];
+}
+
+function onError(code)
+{
+	var msg = 'Wystąpił błąd';
+
+	if (errors.hasOwnProperty(code))
+		msg = errors[code];
+
+	showToast(msg, 5000);
+	set_locked = false;
+}
+
+function onDone(code)
+{
+	var msg = 'Wykonano zapytanie';
+
+	if (dones.hasOwnProperty(code))
+		msg = dones[code];
+
+	showToast(msg, 5000);
+	set_locked = false;
 }
