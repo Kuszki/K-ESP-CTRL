@@ -2,41 +2,45 @@
 
 import network, json
 
-class netconf:
+def configure():
 
-	def __init__(self): pass
+	conf = get_conf()
 
-	def get_conf(self):
+	if 'client' in conf:
 
-		try: return json.load(open('/etc/network.json', 'r'))
-		except: return dict()
+		net = network.WLAN(network.STA_IF)
+		con = conf['client']
 
-	def set_conf(self, conf):
+		net.active(bool(int(con['on'])))
 
-		with open('/etc/network.json', 'w') as f:
-			json.dump(conf, f)
+		if net.active():
+			net.connect(con['ssid'], con['pass'])
 
-	def configure(self):
+	if 'access' in conf:
 
-		conf = self.get_conf()
+		net = network.WLAN(network.AP_IF)
+		con = conf['access']
 
-		if 'client' in conf:
+		net.active(bool(int(con['on'])))
 
-			net = network.WLAN(network.STA_IF)
-			con = conf['client']
+		if net.active(): self.ap_if.config(\
+			essid = con['ssid'], password = con['pass'], \
+			authmode = network.AUTH_WPA_WPA2_PSK)
 
-			net.active(bool(int(con['on'])))
+def get_conf():
 
-			if net.active():
-				net.connect(con['ssid'], con['pass'])
+	try: return json.load(open('/etc/network.json', 'r'))
+	except: return dict()
 
-		if 'access' in conf:
+def set_conf(conf):
 
-			net = network.WLAN(network.AP_IF)
-			con = conf['access']
+	with open('/etc/network.json', 'w') as f:
+		json.dump(conf, f)
 
-			net.active(bool(int(con['on'])))
+def sta_active():
 
-			if net.active(): self.ap_if.config(\
-				essid = con['ssid'], password = con['pass'], \
-				authmode = network.AUTH_WPA_WPA2_PSK)
+	return network.WLAN(network.STA_IF).active()
+
+def ap_active():
+
+	return network.WLAN(network.AP_IF).active()

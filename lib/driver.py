@@ -31,10 +31,12 @@ class driver:
 
 		try: self.schedules = json.load(open('/etc/plan.json', 'r'))
 		except: self.schedules = dict()
+		else: gc.collect()
 		finally: self.lasts = 0
 
 		try: self.tasks = json.load(open('/etc/jobs.json', 'r'))
 		except: self.tasks = dict()
+		else: gc.collect()
 		finally: self.lastt = 0
 
 		for k in self.schedules:
@@ -47,6 +49,7 @@ class driver:
 
 		try: settings = json.load(open('/etc/driver.json', 'r'))
 		except: settings = dict()
+		else: gc.collect()
 
 		try: self.def_temp = settings['main']['target']
 		except: self.def_temp = 20.0
@@ -849,13 +852,12 @@ class driver:
 		if now - self.tp_save >= self.ptime:
 			self.tp_save = now
 			self.on_hist(now)
-			gc.collect()
 
 		if now - self.tl_save >= self.ltime:
 			self.tl_save = now
 			self.on_logs(now)
-			gc.collect()
 
 		if not len(self.temperatures):
 			self.curr_temp = None
 
+		gc.collect()

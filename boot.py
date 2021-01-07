@@ -1,10 +1,10 @@
-import ntptime, time, network, gc
-from netconf import netconf
+from netconf import configure, sta_active
+from ntptime import settime
 
-if not network.WLAN(network.STA_IF).active():
-	nc = netconf()
-	nc.configure()
+import gc, micropython; gc.collect()
 
-try:	ntptime.settime()
+if not sta_active(): configure()
+
+try:	settime()
 except: pass
 finally: gc.collect()

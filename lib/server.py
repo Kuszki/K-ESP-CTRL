@@ -1,24 +1,9 @@
 # coding=UTF-8
 
-import socket, select, json, gc, os
-import utime
+import socket, select, json, os, gc
+from micropython import const
 
 class server:
-
-	STR_OK = b'HTTP/1.1 200 OK'
-	STR_NF = b'HTTP/1.1 404 NF'
-	STR_NA = b'HTTP/1.1 406 NA'
-
-	STR_CO = b'Connection: keep-alive'
-
-	STR_CL = b'Content-Length: %s'
-	STR_CT = b'Content-Type: %s'
-
-	STR_EN = b'\r\n'
-
-	B_LEN = const(4096)
-	W_LEN = const(1000)
-	Q_LEN = const(25)
 
 	def __init__(self, port = 80):
 
@@ -26,17 +11,16 @@ class server:
 
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind(('', port))
-		self.sock.listen(self.Q_LEN)
+		self.sock.listen(25)
 
 		self.poll = select.poll()
 		self.poll.register(self.sock, select.POLLIN)
 
 		self.slites = dict()
-		self.cons = list()
 
 	def accept(self):
 
-		res = self.poll.poll(self.W_LEN)
+		res = self.poll.poll(1000)
 
 		if not res: return None
 		for k in res:
@@ -44,7 +28,7 @@ class server:
 			if k[0] != self.sock: s = k[0]
 			else: return self.connect()
 
-			try: buff = s.recv(self.B_LEN)
+			try: buff = s.recv(512)
 			except: self.disconnect(s)
 			else:
 
@@ -53,6 +37,7 @@ class server:
 
 					try: self.recv(s, buff)
 					except: self.disconnect(s)
+					finally: gc.collect()
 
 	def connect(self):
 
@@ -60,15 +45,11 @@ class server:
 		s.settimeout(3)
 
 		self.poll.register(s, select.POLLIN)
-		self.cons.append(s)
 
 	def disconnect(self, sock):
 
 		self.poll.unregister(sock)
-		self.cons.remove(sock)
-
-		sock.close()
-		gc.collect()
+		sock.close(); gc.collect()
 
 	def recv(self, sock, buff):
 
@@ -76,7 +57,7 @@ class server:
 
 			while buff.find(b'\r\n\r\n') == -1:
 				if not buff: raise BufferError
-				else: buff += sock.recv(self.B_LEN)
+				else: buff += sock.recv(1024)
 
 			if buff.startswith(b'POST /'):
 				slite, par = self.post(buff, sock)
@@ -84,7 +65,7 @@ class server:
 			elif buff.startswith(b'GET /'):
 				slite, par = self.get(buff)
 
-			else: sefl.nvalid(sock);
+			else: sock.sendall(b'HTTP/1.1 406 NA\r\n\r\n')
 
 			if slite:
 				self.resp(slite, par, sock)
@@ -93,70 +74,38 @@ class server:
 
 	def resp(self, slite, par, sock):
 
-		con = sli = mim = siz = res = None
+		con = mim = siz = res = None
 
 		if slite in self.slites:
 			try: con = self.slites[slite](par)
-			except: return self.nfound(sock)
+			except: sock.sendall(b'HTTP/1.1 404 NF\r\n\r\n')
 
 		else:
-			try: sli, mim, siz = self.slite(slite)
-			except: return self.nfound(sock)
+			try: res, mim, siz = self.slite(slite)
+			except: sock.sendall(b'HTTP/1.1 404 NF\r\n\r\n')
 
-		if con != None: res = str(con).encode()
+		if con == None and res == None: return
+
+		if res == None: res = str(con).encode()
 		if mim == None: mim = self.mime(slite)
 		if siz == None: siz = len(res)
 
 		try:
 
-			try: self.vheader(sock, siz, mim)
-			except: raise
-
-			if res != None: sock.sendall(res)
-			elif sli != None:
-
-				with open(sli, 'r') as f:
-
-					try: buff = f.read(self.B_LEN)
-					except: buff = False
-
-					while buff:
-						try: sock.sendall(buff)
-						except: buff = False
-						else: buff = f.read(self.B_LEN)
+			sock.sendall(\
+				b'HTTP/1.1 200 OK\r\n' \
+				b'Connection: keep-alive\r\n' \
+				b'Content-Length: %s\r\n' \
+				b'Content-Type: %s\r\n' \
+				b'\r\n' % (siz, mim))
+			sock.sendall(res)
 
 		except: raise
-
-	def nfound(self, sock):
-
-		sock.sendall(self.STR_NF)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_CO)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_EN)
-
-	def nvalid(self, sock):
-
-		sock.sendall(self.STR_NA)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_CO)
-		sock.sendall(self.STR_EN)
-
-	def vheader(self, sock, size, mime):
-
-		sock.sendall(self.STR_OK)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_CO)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_CL % size)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_CT % mime)
-		sock.sendall(self.STR_EN)
-		sock.sendall(self.STR_EN)
+		finally: del res
 
 	def get(self, req):
 
-		e = req.find(b'\r\n\r\n')
+		e = req.find(b'\r\n')
 		a = req.find(b'GET /', 0, e) + 5
 		b = req.find(b' HTTP', a, e)
 
@@ -187,9 +136,10 @@ class server:
 
 	def post(self, req, sock):
 
-		e = req.find(b'\r\n\r\n')
+		e = req.find(b'\r\n')
 		a = req.find(b'POST /', 0, e) + 6
 		b = req.find(b' HTTP', a, e)
+		e = req.find(b'\r\n\r\n', e)
 		d = self.unquote
 
 		if a == 5 or b == -1 or a > b:
@@ -198,10 +148,10 @@ class server:
 		elif a == b: slite = 'index.html'
 		else: slite = d(req[a:b]).decode()
 
-		j = req.find(self.STR_CT % b'application/json', b, e)
-		p = req.find(self.STR_CT % b'text/plain', b, e)
-		a = req.find(self.STR_CL % b'', b, e) + 15
-		b = req.find(self.STR_EN, a, e)
+		j = req.find(b'Content-Type: application/json', b, e)
+		p = req.find(b'Content-Type: text/plain', b, e)
+		a = req.find(b'Content-Length:', b, e) + 16
+		b = req.find(b'\r\n', a, e)
 
 		if a == 14 or b == -1 or a > b:
 			return slite, dict()
@@ -211,9 +161,8 @@ class server:
 			else: req = req[e+4:]
 
 		while len(req) != leng:
-			try: req += sock.recv(self.B_LEN)
+			try: req += sock.recv(leng - len(req))
 			except: return slite, dict()
-
 			if not req: raise BufferError
 
 		if j != -1: vlist = json.loads(req)
@@ -280,11 +229,13 @@ class server:
 
 		try:
 
-			mime = self.mime(path)
-			size = os.stat(path)[6]
+			with open(path, 'rb') as f:
+				mime = self.mime(path)
+				cont = f.read()
+				size = len(cont)
 
 		except: raise
-		else: return path, mime, size
+		else: return cont, mime, size
 
 	def mime(self, path):
 
