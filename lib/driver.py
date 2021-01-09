@@ -12,21 +12,6 @@ class driver:
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
 	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne' }
 
-	LOGS = \
-	{
-		'pwr': \
-		{
-			0: 'Wyłączono ogrzewanie',
-			1: 'Włączono ogrzewanie'
-		},
-		'drv': \
-		{
-			0: 'Ustawiono sterowanie ręczne',
-			1: 'Ustawiono sterowanie automatyczne'
-		},
-		'boot': 'Włączono sterownik'
-	}
-
 	def __init__(self, out):
 
 		try: self.schedules = json.load(open('/etc/plan.json', 'r'))
@@ -102,6 +87,8 @@ class driver:
 		try: self.wpla = settings['outdor']['place']
 		except: self.wpla = str()
 
+		del settings; gc.collect()
+
 		self.ptime = int(self.page / self.psize)
 		self.ltime = int(self.lage / self.lsize)
 
@@ -123,7 +110,8 @@ class driver:
 		self.out = out
 		self.out.off()
 
-		del settings
+		self.save_logs('boot', 1)
+
 		gc.collect()
 
 	def save_settings(self):
@@ -175,9 +163,8 @@ class driver:
 
 			del v, path, data
 
-	def save_logs(self, msg, now = None):
+	def save_logs(self, k, s, now = None):
 
-		if msg == None: os.remove('/etc/log.json'); return None
 		if now == None: now = self.get_time()
 
 		try: logs = json.load(open('/etc/log.json', 'r'))
@@ -189,7 +176,7 @@ class driver:
 
 		while len(logs) >= self.lsize: logs.pop(-1)
 
-		logs.insert(0, { 't': now, 'msg': msg })
+		logs.insert(0, { 't': now, 'k': k, 's': s })
 
 		with open('/etc/log.json', 'w') as f:
 			json.dump(logs, f)
@@ -201,7 +188,7 @@ class driver:
 		if self.power != power:
 
 			self.last_sw = self.get_time()
-			self.on_log('pwr', power)
+			self.save_logs('pwr', power)
 			self.power = power
 			self.out.value(power)
 
@@ -211,7 +198,7 @@ class driver:
 
 		if self.driver != driver:
 
-			self.on_log('drv', driver)
+			self.save_logs('drv', driver)
 			self.driver = driver
 
 	def set_temps(self, v):
@@ -465,7 +452,9 @@ class driver:
 
 			if 'rmlogs' in v:
 
-				self.save_logs(None)
+				try: os.remove('/etc/log.json')
+				except: ok = False
+
 				num = num + 1
 
 		finally: return ok and (num == len(v))
@@ -764,7 +753,7 @@ class driver:
 	def on_logs(self, now):
 
 		try: logs = json.load(open('/etc/log.json', 'r'))
-		except: logs = list()
+		except: return None
 
 		for v in logs:
 			if now - v['t'] >= self.lage:
@@ -801,12 +790,6 @@ class driver:
 			self.out_temp = None
 			self.out_wet = None
 			self.tw_save = 0
-
-	def on_log(self, cat, stat = None):
-
-		if cat in self.LOGS and stat in self.LOGS[cat]:
-			self.save_logs(self.LOGS[cat][stat])
-		else: self.save_logs(cat)
 
 	def on_loop(self):
 

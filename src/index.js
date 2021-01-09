@@ -88,7 +88,7 @@ function onTemps(data)
 		temp = data[keys[k]];
 
 		if (!Number.isFinite(temp)) temp = 'Brak danych';
-		else temp = Number(temp).toPrecision(3) + ' ℃';
+		else temp = Number(temp).toFixed(1) + ' ℃';
 
 		table += `<tr><td>${keys[k]}</td><td>${temp}</td></tr>`;
 	}

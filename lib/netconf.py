@@ -4,7 +4,8 @@ import network, json
 
 def configure():
 
-	conf = get_conf()
+	with open('/etc/network.json', 'r') as f:
+		conf = json.load(f)
 
 	if 'client' in conf:
 
@@ -26,16 +27,6 @@ def configure():
 		if net.active(): self.ap_if.config(\
 			essid = con['ssid'], password = con['pass'], \
 			authmode = network.AUTH_WPA_WPA2_PSK)
-
-def get_conf():
-
-	try: return json.load(open('/etc/network.json', 'r'))
-	except: return dict()
-
-def set_conf(conf):
-
-	with open('/etc/network.json', 'w') as f:
-		json.dump(conf, f)
 
 def sta_active():
 
