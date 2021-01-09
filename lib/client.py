@@ -14,6 +14,7 @@ class client:
 		self.time = conf['time']
 		self.sleep = conf['sleep']
 		self.srv = conf['srv']
+		self.auth = conf['auth']
 
 		self.sens = sens
 
@@ -29,5 +30,6 @@ class client:
 
 		tmp = self.sens.get_temp()
 		req = self.REQ % (self.srv, self.name, tmp)
+		par = { 'Authorization' : 'Basic %s' % self.auth }
 
-		return requests.get(req).text == "True"
+		return requests.get(req, headers=par).text == "True"

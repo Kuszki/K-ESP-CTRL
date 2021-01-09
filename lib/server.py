@@ -1,11 +1,15 @@
 # coding=UTF-8
 
 import socket, select, json, os, gc
+from binascii import a2b_base64
 from micropython import const
 
 class server:
 
 	def __init__(self, port = 80):
+
+		try: self.users = json.load(open('/etc/users.json', 'r'))
+		except: self.users = dict()
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -59,16 +63,34 @@ class server:
 				if not buff: raise BufferError
 				else: buff += sock.recv(1024)
 
-			if buff.startswith(b'POST /'):
+			if not self.auth(buff):
+				code = b'401 Unauthorized'
+				slite = None
+
+			elif buff.startswith(b'POST /'):
 				slite, par = self.post(buff, sock)
 
 			elif buff.startswith(b'GET /'):
 				slite, par = self.get(buff)
 
-			else: sock.sendall(b'HTTP/1.1 406 NA\r\n\r\n')
+			else:
+				code = '406 Not Acceptable'
+				slite = None
 
-			if slite:
-				self.resp(slite, par, sock)
+			if slite: code = self.resp(slite, par, sock)
+
+			if code: sock.sendall(\
+				b'HTTP/1.1 %s\r\n' \
+				b'Allow: GET, POST\r\n' \
+				b'Connection: keep-alive\r\n' \
+				b'Content-Length: 0\r\n' \
+				b'Accept: ' \
+					b'application/x-www-form-urlencoded, ' \
+					b'application/json\r\n' \
+				b'WWW-Authenticate: ' \
+					b'Basic realm="K-ESP-CTRL", ' \
+					b'charset="UTF-8"\r\n' \
+				b'\r\n' % code)
 
 		except: raise
 
@@ -78,13 +100,11 @@ class server:
 
 		if slite in self.slites:
 			try: con = self.slites[slite](par)
-			except: sock.sendall(b'HTTP/1.1 404 NF\r\n\r\n')
+			except: return '404 Not Found'
 
 		else:
 			try: res, mim, siz = self.slite(slite)
-			except: sock.sendall(b'HTTP/1.1 404 NF\r\n\r\n')
-
-		if con == None and res == None: return
+			except: return '404 Not Found'
 
 		if res == None: res = str(con).encode()
 		if mim == None: mim = self.mime(slite)
@@ -127,10 +147,8 @@ class server:
 			slite = d(req)
 			vlist = dict()
 
-		if slite == b'':
-			slite = 'index.html'
-		else:
-			slite = slite.decode()
+		if slite == b'': slite = 'index.html'
+		else: slite = slite.decode()
 
 		return slite, vlist
 
@@ -150,11 +168,12 @@ class server:
 
 		j = req.find(b'Content-Type: application/json', b, e)
 		p = req.find(b'Content-Type: text/plain', b, e)
-		a = req.find(b'Content-Length:', b, e) + 16
+		a = req.find(b'Content-Length: ', b, e) + 15
 		b = req.find(b'\r\n', a, e)
 
 		if a == 14 or b == -1 or a > b:
 			return slite, dict()
+
 		else:
 			try: leng = int(req[a:b])
 			except: return slite, dict()
@@ -170,6 +189,25 @@ class server:
 		else: vlist = self.split(req)
 
 		return slite, vlist
+
+	def auth(self, req):
+
+		if not len(self.users): return True
+
+		s = req.find(b'\r\n') + 2
+		e = req.find(b'\r\n\r\n')
+		a = req.find(b'Authorization: Basic ', s, e) + 21
+		b = req.find(b'\r\n', a)
+
+		if a == 20 or b == -1 or a > b: return False
+		else: auth = a2b_base64(req[a:b]).split(b':')
+
+		if len(auth) != 2: return False
+		else: u = auth[0]; p = auth[1]
+
+		if u in self.users:
+			return self.users[u] == p
+		else: return False
 
 	def unquote(self, string):
 
