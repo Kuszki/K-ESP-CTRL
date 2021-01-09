@@ -14,6 +14,9 @@ def configure():
 
 		net.active(bool(int(con['on'])))
 
+		if 'name' in conf:
+			net.config(dhcp_hostname = con['name'])
+
 		if net.active():
 			net.connect(con['ssid'], con['pass'])
 
@@ -26,7 +29,8 @@ def configure():
 
 		if net.active(): self.ap_if.config(\
 			essid = con['ssid'], password = con['pass'], \
-			authmode = network.AUTH_WPA_WPA2_PSK)
+			authmode = network.AUTH_WPA_WPA2_PSK, \
+			dhcp_hostname = con['name'])
 
 def sta_active():
 

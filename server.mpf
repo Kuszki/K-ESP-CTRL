@@ -60,6 +60,7 @@ put src/toast.js
 put etc/network.json
 put etc/default.json
 put etc/driver.json
+put etc/users.json
 put etc/plot.json
 put etc/plan.json
 put etc/jobs.json

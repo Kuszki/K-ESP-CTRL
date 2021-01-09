@@ -67,14 +67,14 @@ class server:
 				code = b'401 Unauthorized'
 				slite = None
 
-			elif buff.startswith(b'POST /'):
-				slite, par = self.post(buff, sock)
-
 			elif buff.startswith(b'GET /'):
 				slite, par = self.get(buff)
 
+			elif buff.startswith(b'POST /'):
+				slite, par = self.post(buff, sock)
+
 			else:
-				code = '406 Not Acceptable'
+				code = b'405 Method Not Allowed'
 				slite = None
 
 			if slite: code = self.resp(slite, par, sock)
@@ -82,15 +82,12 @@ class server:
 			if code: sock.sendall(\
 				b'HTTP/1.1 %s\r\n' \
 				b'Allow: GET, POST\r\n' \
+				b'Content-Length: %s\r\n' \
 				b'Connection: keep-alive\r\n' \
-				b'Content-Length: 0\r\n' \
-				b'Accept: ' \
-					b'application/x-www-form-urlencoded, ' \
-					b'application/json\r\n' \
-				b'WWW-Authenticate: ' \
-					b'Basic realm="K-ESP-CTRL", ' \
-					b'charset="UTF-8"\r\n' \
-				b'\r\n' % code)
+				b'WWW-Authenticate: Basic\r\n' \
+				b'Accept: application/json\r\n' \
+				b'text/plain; charset=utf-8\r\n' \
+				b'\r\n%s' % (code, len(code), code))
 
 		except: raise
 
@@ -100,11 +97,11 @@ class server:
 
 		if slite in self.slites:
 			try: con = self.slites[slite](par)
-			except: return '404 Not Found'
+			except: return b'406 Not Acceptable'
 
 		else:
 			try: res, mim, siz = self.slite(slite)
-			except: return '404 Not Found'
+			except: return b'404 Not Found'
 
 		if res == None: res = str(con).encode()
 		if mim == None: mim = self.mime(slite)
@@ -203,11 +200,12 @@ class server:
 		else: auth = a2b_base64(req[a:b]).split(b':')
 
 		if len(auth) != 2: return False
-		else: u = auth[0]; p = auth[1]
+		else:
+			u = auth[0].decode()
+			p = auth[1].decode()
 
-		if u in self.users:
-			return self.users[u] == p
-		else: return False
+		if not u in self.users: return False
+		else: return self.users[u] == p
 
 	def unquote(self, string):
 
@@ -268,6 +266,7 @@ class server:
 		try:
 
 			with open(path, 'rb') as f:
+
 				mime = self.mime(path)
 				cont = f.read()
 				size = len(cont)
