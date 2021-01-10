@@ -25,5 +25,5 @@ gc.collect()
 
 while True:
 
-	s.accept(); gc.collect()
-	d.on_loop(); gc.collect()
+	s.accept()
+	d.on_loop()
