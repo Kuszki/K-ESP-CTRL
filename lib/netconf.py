@@ -14,7 +14,7 @@ def configure():
 
 		net.active(bool(int(con['on'])))
 
-		if 'name' in conf:
+		if 'name' in con:
 			net.config(dhcp_hostname = con['name'])
 
 		if net.active():

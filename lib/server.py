@@ -38,12 +38,12 @@ class server:
 
 		try:
 
-			try: buff = sock.recv(512)
+			try: buff = sock.recv(1024)
 			except: return None
 
 			while buff.find(b'\r\n\r\n') == -1:
 				if not buff: raise BufferError
-				else: buff += sock.recv(1024)
+				else: buff += sock.recv(2048)
 
 			if not self.auth(buff):
 				code = b'401 Unauthorized'
