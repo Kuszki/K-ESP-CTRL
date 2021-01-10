@@ -24,40 +24,22 @@ class server:
 
 	def accept(self):
 
-		res = self.poll.poll(1000)
+		if self.poll.poll(1000):
 
-		if not res: return None
-		for k in res:
+			try: s = self.sock.accept()[0]
+			except: return None
+			else: s.settimeout(3)
 
-			if k[0] != self.sock: s = k[0]
-			else: return self.connect()
+			try: self.recv(s)
+			except: pass
+			finally: s.close()
 
-			try: buff = s.recv(512)
-			except: self.disconnect(s)
-			else:
-
-				if not buff: self.disconnect(s)
-				else:
-
-					try: self.recv(s, buff)
-					except: self.disconnect(s)
-					finally: gc.collect()
-
-	def connect(self):
-
-		s = self.sock.accept()[0]
-		s.settimeout(3)
-
-		self.poll.register(s, select.POLLIN)
-
-	def disconnect(self, sock):
-
-		self.poll.unregister(sock)
-		sock.close(); gc.collect()
-
-	def recv(self, sock, buff):
+	def recv(self, sock):
 
 		try:
+
+			try: buff = sock.recv(512)
+			except: return None
 
 			while buff.find(b'\r\n\r\n') == -1:
 				if not buff: raise BufferError
@@ -68,7 +50,7 @@ class server:
 				slite = None
 
 			elif buff.startswith(b'GET /'):
-				slite, par = self.get(buff)
+				slite, par = self.get(buff, sock)
 
 			elif buff.startswith(b'POST /'):
 				slite, par = self.post(buff, sock)
@@ -82,14 +64,15 @@ class server:
 			if code: sock.sendall(\
 				b'HTTP/1.1 %s\r\n' \
 				b'Allow: GET, POST\r\n' \
+				b'Connection: close\r\n' \
 				b'Content-Length: %s\r\n' \
-				b'Connection: keep-alive\r\n' \
 				b'WWW-Authenticate: Basic\r\n' \
 				b'Accept: application/json\r\n' \
 				b'text/plain; charset=utf-8\r\n' \
 				b'\r\n%s' % (code, len(code), code))
 
 		except: raise
+		finally: gc.collect()
 
 	def resp(self, slite, par, sock):
 
@@ -111,16 +94,16 @@ class server:
 
 			sock.sendall(\
 				b'HTTP/1.1 200 OK\r\n' \
-				b'Connection: keep-alive\r\n' \
-				b'Content-Length: %s\r\n' \
 				b'Content-Type: %s\r\n' \
-				b'\r\n' % (siz, mim))
+				b'Connection: close\r\n' \
+				b'Content-Length: %s\r\n' \
+				b'\r\n' % (mim, siz))
 			sock.sendall(res)
 
 		except: raise
 		finally: del res
 
-	def get(self, req):
+	def get(self, req, sock):
 
 		e = req.find(b'\r\n')
 		a = req.find(b'GET /', 0, e) + 5
