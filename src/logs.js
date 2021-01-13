@@ -60,6 +60,8 @@ function onLogs(data)
 
 			data[i].d = data[j].t - data[i].t;
 			data[i].d = Math.floor(data[i].d / 60);
+
+			if (data[i].d <= 1.0) data[i].d = null;
 		}
 	}
 

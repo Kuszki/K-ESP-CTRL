@@ -33,6 +33,36 @@
 					}
 				}
 			}]
+		},
+		"pan":
+		{
+			"enabled": true,
+			"mode": "x",
+			"rangeMin":
+			{
+				"x": null,
+				"y": null
+			},
+			"rangeMax":
+			{
+				"x": null,
+				"y": null
+			}
+		},
+		"zoom":
+		{
+			"enabled": true,
+			"mode": "x",
+			"rangeMin":
+			{
+				"x": null,
+				"y": null
+			},
+			"rangeMax":
+			{
+				"x": null,
+				"y": null
+			}
 		}
 	}
 }

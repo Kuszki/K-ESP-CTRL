@@ -3,7 +3,7 @@ var set_locked = false;
 
 function onLoad()
 {
-	$.ajaxSetup({ 'timeout': 2500 });
+	$.ajaxSetup({ 'timeout': 10000 });
 
 	$.when
 	(
@@ -29,8 +29,34 @@ function onLoad()
 
 			for (j = 0; j < x.data.length; ++j)
 			{
-				var old = x.data[j]['t'] * 1000;
-				x.data[j]['t'] = new Date(old + off);
+				const old = x.data[j]['t'] * 1000;
+				const t = new Date(old + off);
+
+				if (plot.options.pan.rangeMax.x == null)
+				{
+					plot.options.zoom.rangeMax.x = t;
+					plot.options.pan.rangeMax.x = t;
+				}
+
+				if (plot.options.pan.rangeMin.x == null)
+				{
+					plot.options.zoom.rangeMin.x = t;
+					plot.options.pan.rangeMin.x = t;
+				}
+
+				if (plot.options.pan.rangeMax.x < t)
+				{
+					plot.options.zoom.rangeMax.x = t;
+					plot.options.pan.rangeMax.x = t;
+				}
+
+				if (plot.options.pan.rangeMin.x > t)
+				{
+					plot.options.zoom.rangeMin.x = t;
+					plot.options.pan.rangeMin.x = t;
+				}
+
+				x.data[j]['t'] = t;
 			}
 
 			plot.data.datasets.push(x);
@@ -103,10 +129,13 @@ function onSystem(data)
 
 	for (const k in data)
 	{
-		if (data[k] != null) temp = data[k];
+		if (data[k] != null) temp = data[k].toString();
 		else temp = 'Brak danych';
 
-		table += `<tr><td>${k}</td><td>${temp}</td></tr>`;
+		const p = k.charAt(0).toUpperCase() + k.slice(1);
+		const v = temp.charAt(0).toUpperCase() + temp.slice(1);
+
+		table += `<tr><td>${p}</td><td>${v}</td></tr>`;
 	}
 
 	$('#system').html(table + '</table>');

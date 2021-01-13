@@ -93,6 +93,7 @@ class driver:
 		self.ltime = int(self.lage / self.lsize)
 
 		self.temperatures = dict()
+		self.updates = dict()
 
 		self.curr_temp = None
 		self.out_temp = None
@@ -133,6 +134,7 @@ class driver:
 
 		if now == None: now = self.get_time()
 
+		for k in t: self.updates[k] = now
 		for k, y in t.items():
 
 			data = { 't': now, 'y': y }
@@ -210,6 +212,7 @@ class driver:
 
 			try: v[k] = float(v[k])
 			except: del v[k]
+			else: v[k] = round(v[k], 2)
 
 			if 5.0 <= v[k] <= 35.0: pass
 			else: del v[k]
@@ -327,6 +330,7 @@ class driver:
 				if 30 <= val <= 150:
 					self.psize = val
 					self.ptime = int(self.page / self.psize)
+					self.tp_save = 0
 					num = num + 1
 				else: ok = False
 
@@ -337,6 +341,7 @@ class driver:
 				if 1 <= val <= 5:
 					self.page = val * 86400
 					self.psize = int(self.page / self.ptime)
+					self.tp_save = 0
 					num = num + 1
 				else: ok = False
 
@@ -347,6 +352,7 @@ class driver:
 				if 15 <= val <= 180:
 					self.ptime = val * 60
 					self.psize = int(self.page / self.ptime)
+					self.tp_save = 0
 					num = num + 1
 				else: ok = False
 
@@ -357,6 +363,7 @@ class driver:
 				if 10 <= val <= 100:
 					self.lsize = val
 					self.ltime = int(self.lage / self.lsize)
+					self.tl_save = 0
 					num = num + 1
 				else: ok = False
 
@@ -367,6 +374,7 @@ class driver:
 				if 1 <= val <= 10:
 					self.lage = val * 86400
 					self.ltime = int(self.lage / self.lsize)
+					self.tl_save = 0
 					num = num + 1
 				else: ok = False
 
@@ -419,6 +427,7 @@ class driver:
 
 				val = str(v['wtok'])
 				self.wtok = val
+				self.tw_save = 0
 				num = num + 1
 
 			if 'wpla' in v:
@@ -470,12 +479,14 @@ class driver:
 
 		if self.funct == 1:
 
-			if (l % 2): return t[i]
-			else: return (t[i] + t[i+1])/2
+			if (l % 2): temp = t[i]
+			else: temp = (t[i] + t[i+1])/2
 
-		elif self.funct == 2: return t[-1]
-		elif self.funct == 3: return t[0]
-		else: return sum(t) / l
+		elif self.funct == 2: temp = t[-1]
+		elif self.funct == 3: temp = t[0]
+		else: temp = sum(t) / l
+
+		return round(temp, 2)
 
 	def get_temps(self):
 
@@ -723,46 +734,61 @@ class driver:
 
 		for l in hist:
 
-			path = '/var/' + l
+			path = '/var/' + l; save = False
 
 			with open(path, 'r') as f:
 				v = json.load(f)
 
-			if now - v['last'] >= self.ptime:
+			if l in self.updates:
+				last = self.updates[l]
+			else:
+				last = v['last']
+
+			if now - last >= self.ptime:
 
 				if l in self.temperatures:
 					del self.temperatures[l]
 
+				if l in self.updates:
+					del self.updates[l]
+
 				if v['data'][-1]['y'] != None:
 					v['data'].append(null)
+					save = True
 
-			for h in v['data']:
-				if now - h['t'] >= self.page:
-					v['data'].remove(h)
-
-			while len(v['data']) > self.psize:
-				v['data'].pop(0)
+			if now - v['data'][-1]['t'] >= self.page: v['data'] = []
+			else:
+				while now - v['data'][0]['t'] >= self.page:
+					v['data'].pop(0)
+					save = True
 
 			if not len(v['data']): os.remove(path)
-			else:
+			elif save:
 				with open(path, 'w') as f:
 					json.dump(v, f)
 
-			del v, path
+			del v, path, save
 
 	def on_logs(self, now):
 
 		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: return None
+		else: save = False
 
-		for v in logs:
-			if now - v['t'] >= self.lage:
-				logs.remove(v)
+		if now - logs[0]['t'] >= self.lage: logs = []
+		else:
+			while now - logs[-1]['t'] >= self.page:
+				logs.pop(-1)
+				save = True
 
-		while len(logs) > self.lsize: logs.pop(-1)
+			while len(logs) > self.lsize:
+				logs.pop(-1)
+				save = True
 
-		with open('/etc/log.json', 'w') as f:
-			json.dump(logs, f)
+		if not len(logs): os.remove('/etc/log.json')
+		elif save:
+			with open('/etc/log.json', 'w') as f:
+				json.dump(logs, f)
 
 	def on_outdor(self, now):
 
@@ -783,7 +809,7 @@ class driver:
 			temp = ans['main']['temp']
 
 			self.out_wet = wet[0].upper() + wet[1:]
-			self.out_temp = temp
+			self.out_temp = round(temp, 2)
 
 		except:
 

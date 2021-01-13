@@ -32,6 +32,7 @@ class server:
 
 			try: self.recv(s)
 			except: pass
+			else: gc.collect()
 			finally: s.close()
 
 	def recv(self, sock):
@@ -58,6 +59,8 @@ class server:
 			else:
 				code = b'405 Method Not Allowed'
 				slite = None
+
+			del buff; gc.collect()
 
 			if slite: code = self.resp(slite, par, sock)
 

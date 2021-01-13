@@ -16,7 +16,7 @@ const errors =
 const dones =
 {
 	'save_sch': 'Harmonogram został zapisany',
-	'save_tas': 'Zdarzenia został zapisany'
+	'save_tas': 'Zdarzenia zostały zapisane'
 };
 
 const off = 2*Date.UTC(2000, 0, 1) - new Date(2000, 0, 1);
@@ -507,7 +507,7 @@ function onTasksSave()
 		'contentType': 'application/json',
 		'data': JSON.stringify(req)
 	}))
-	.done(function()
+	.done(function(msg)
 	{
 		if (msg == "True")
 		{
