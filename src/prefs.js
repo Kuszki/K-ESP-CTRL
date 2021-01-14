@@ -12,11 +12,10 @@ const dones =
 };
 
 var cf_org, cf_last = null;
-var set_locked = false;
 
 function onLoad()
 {
-	$.ajaxSetup({ 'timeout': 2500 });
+	$.ajaxSetup({ 'timeout': 5000 });
 
 	$.when($.getJSON('prefs.json', onPrefs))
 	.done(function(data)
@@ -111,53 +110,8 @@ function onPrefs(data)
 	}
 }
 
-function onExpand(tree)
-{
-	var e = document.getElementById(tree);
-	if (e == null) return;
-
-	if (e.className == 'hide')
-	{
-		e.className = 'off';
-		setTimeout(function()
-		{
-			e.className = 'on';
-		}, 150);
-	}
-	else
-	{
-		e.className = 'off';
-		setTimeout(function()
-		{
-			e.className = 'hide';
-		}, 1000);
-	}
-}
-
 function onUpdate(data)
 {
 	for (const k in data)
 		cf_last[k] = data[k];
-}
-
-function onError(code)
-{
-	var msg = 'Wystąpił błąd';
-
-	if (errors.hasOwnProperty(code))
-		msg = errors[code];
-
-	showToast(msg, 5000);
-	set_locked = false;
-}
-
-function onDone(code)
-{
-	var msg = 'Wykonano zapytanie';
-
-	if (dones.hasOwnProperty(code))
-		msg = dones[code];
-
-	showToast(msg, 5000);
-	set_locked = false;
 }

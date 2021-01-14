@@ -41,6 +41,7 @@ putc lib/requests.py
 
 put http/index.html
 put http/scheds.html
+put http/tasks.html
 put http/prefs.html
 put http/logs.html
 
@@ -49,13 +50,13 @@ put css/tabs.css
 put css/sets.css
 put css/jobs.css
 put css/logs.css
-put css/toast.css
 
 put src/index.js
 put src/scheds.js
+put src/tasks.js
 put src/prefs.js
 put src/logs.js
-put src/toast.js
+put src/main.js
 
 put etc/network.json
 put etc/default.json

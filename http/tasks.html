@@ -8,12 +8,12 @@
 		<link rel="stylesheet" type="text/css" href="main.css"/>
 		<link rel="stylesheet" type="text/css" href="jobs.css"/>
 
-		<title>Sterownik K-ESP-CTRL: Harmonogram</title>
+		<title>Sterownik K-ESP-CTRL: Zadania</title>
 
 		<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 
 		<script src="main.js"></script>
-		<script src="scheds.js"></script>
+		<script src="tasks.js"></script>
 
 		<script> $(document).ready(onLoad); </script>
 
@@ -21,7 +21,7 @@
 	<body>
 
 		<header>
-			<p>Harmonogram sterownika K-ESP-CTRL</p>
+			<p>Zadania sterownika K-ESP-CTRL</p>
 			<nav>
 				<a href="https://github.com/Kuszki/K-ESP-CTRL">Informacje</a>
 			</nav>
@@ -35,7 +35,7 @@
 				<a href="tasks.html">Zadania</a>
 				<a href="prefs.html">Ustawienia</a>
 				<a href="scheds.html">Harmonogram</a>
-				<p>Harmonogram</p>
+				<p>Zadania</p>
 				<a href="javascript:void(0)" onclick="onAdd()">Dodaj</a>
 				<a href="javascript:void(0)" onclick="onSave()">Zapisz</a>
 				<a href="javascript:void(0)" onclick="onReset()">Przywróć</a>
@@ -43,8 +43,8 @@
 		</menu>
 
 		<section>
-			<p>Harmonogram</p>
-			<div id="scheds"></div>
+			<p>Zadania</p>
+			<div id="tasks"></div>
 		</section>
 
 		<footer id="toast"></footer>

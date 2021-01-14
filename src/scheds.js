@@ -1,13 +1,10 @@
 const days = {'pn': 'PN', 'wt': 'WT', 'sr': 'ŚR', 'cz': 'CZ', 'pt': 'PT', 'so': 'SO', 'nd': 'ND'};
-const acts = {'0': 'Wyłącz + Ręczne', '1': 'Włącz + Ręczne', '2': 'Automatyczne' };
 const sets = {'0': 'Wyłącz', '100': 'Włącz' };
 
 const errors =
 {
-	'load_sch': 'Nie udało się wczytać harmonogramu',
-	'load_tas': 'Nie udało się wczytać zdarzeń',
-	'save_sch': 'Nie udało się zapisać harmonogramu',
-	'save_tas': 'Nie udało się zapisać zdarzeń',
+	'load': 'Nie udało się wczytać harmonogramu',
+	'save': 'Nie udało się zapisać harmonogramu',
 	'val': 'Zadane parametry są niepoprawne',
 	'id': 'Nie udało się uzyskać identyfikatora',
 	'nc': 'Brak zmian do zapisania'
@@ -15,23 +12,19 @@ const errors =
 
 const dones =
 {
-	'save_sch': 'Harmonogram został zapisany',
-	'save_tas': 'Zdarzenia zostały zapisane'
+	'save': 'Harmonogram został zapisany'
 };
 
 const off = 2*Date.UTC(2000, 0, 1) - new Date(2000, 0, 1);
 
-var sh_org = null, ta_org = null;
-var sh_last = null, ta_last = null;
-var sh_del = [], ta_del = [];
-var sh_add = [], ta_add = [];
-var set_locked = false;
+var sh_org = null, sh_last = null;
+var sh_del = [], sh_add = [];
 
 function onLoad()
 {
-	$.ajaxSetup({ 'timeout': 2500 });
+	$.ajaxSetup({ 'timeout': 5000 });
 
-	$.when($.getJSON('scheds.json', onSchedsLoad))
+	$.when($.getJSON('scheds.json', onScheds))
 	.done(function(data)
 	{
 		sh_org = Object.assign({}, data);
@@ -39,102 +32,26 @@ function onLoad()
 	})
 	.fail(function()
 	{
-		onError('load_sch');
-	});
-
-	$.when($.getJSON('tasks.json', onTasksLoad))
-	.done(function(data)
-	{
-		ta_org = Object.assign({}, data);
-		ta_last = Object.assign({}, data);
-	})
-	.fail(function()
-	{
-		onError('load_tas');
+		onError('load');
 	});
 }
 
-function onExpand(tree, show = false)
+function onScheds(data)
 {
-	var e = document.getElementById(tree);
-	if (e == null) return;
+	var keys = Object.keys(data).sort(function(a, b)
+	{
+		if (data[a].from < data[b].from) return -1;
+		if (data[a].from > data[b].from) return 1;
+		return 0;
+	});
 
-	if (e.className == 'hide')
+	for (const k in keys)
 	{
-		e.className = 'off';
-		setTimeout(function()
-		{
-			e.className = 'on';
-		}, 150);
-	}
-	else if (!show)
-	{
-		e.className = 'off';
-		setTimeout(function()
-		{
-			e.className = 'hide';
-		}, 1000);
+		onAppend(keys[k], data[keys[k]]);
 	}
 }
 
-function onError(code)
-{
-	var msg = 'Wystąpił błąd';
-
-	if (errors.hasOwnProperty(code))
-		msg = errors[code];
-
-	showToast(msg, 5000);
-	set_locked = false;
-}
-
-function onDone(code)
-{
-	var msg = 'Wykonano zapytanie';
-
-	if (dones.hasOwnProperty(code))
-		msg = dones[code];
-
-	showToast(msg, 5000);
-	set_locked = false;
-}
-
-function genItem(f, c, t, n, req = false)
-{
-	var i = document.createElement(c);
-
-	i.type = t;
-	i.name = n;
-	i.id = n;
-	i.required = req;
-
-	f.append(i);
-
-	return i;
-}
-
-function genLabel(f, t, p = null, n = null)
-{
-	var i = document.createElement('label');
-
-	if (p) i.htmlFor = p;
-	if (n) i.id = n;
-
-	i.innerText = t;
-	f.append(i);
-
-	return i;
-}
-
-function onSchedsLoad(data)
-{
-	for (const k in data)
-	{
-		onSchedsAppend(k, data[k]);
-	}
-}
-
-function onSchedsAppend(id, data)
+function onAppend(id, data)
 {
 	id = Number(id); if (Number.isNaN(id)) return;
 
@@ -192,7 +109,7 @@ function onSchedsAppend(id, data)
 
 	bdel.onclick = function()
 	{
-		onSchedsRemove(id);
+		onRemove(id);
 	}
 
 	lab.innerText = data['on'] ? '✓' : '✗';
@@ -218,7 +135,7 @@ function onSchedsAppend(id, data)
 	form.id = 'sched_' + id;
 }
 
-function onSchedsAdd()
+function onAdd()
 {
 	if (set_locked) return;
 	else set_locked = true;
@@ -228,7 +145,7 @@ function onSchedsAdd()
 	{
 		sh_add.push(Number(data));
 		onExpand('scheds', true);
-		onSchedsAppend(data, {});
+		onAppend(data, {});
 		set_locked = false;
 	})
 	.fail(function()
@@ -237,7 +154,7 @@ function onSchedsAdd()
 	});
 }
 
-function onSchedsRemove(id)
+function onRemove(id)
 {
 	document.getElementById('sched_' + id).remove();
 
@@ -247,7 +164,7 @@ function onSchedsRemove(id)
 	else sh_del.push(id);
 }
 
-function onSchedsSave()
+function onSave()
 {
 	if (set_locked) return;
 	else set_locked = true;
@@ -321,224 +238,34 @@ function onSchedsSave()
 	{
 		if (msg == "True")
 		{
-			onSchedsUpdate(req);
-			onDone('save_sch');
+			onUpdate(req);
+			onDone('save');
 		}
 		else
 		{
-			onError('save_sch');
+			onError('save');
 		}
 	})
 	.fail(function()
 	{
-		onError('save_sch');
+		onError('save');
 	});
 }
 
-function onSchedsReset()
+function onReset()
 {
 	var sec = document.getElementById('scheds').children;
 
 	while (sec.length) sec[0].remove();
 
 	if (sh_org == null) onLoad();
-	else onSchedsLoad(sh_org);
+	else onScheds(sh_org);
 
 	onExpand('scheds', true);
 }
 
-function onSchedsUpdate(data)
+function onUpdate(data)
 {
 	for (const k in data)
 		sh_last[k] = data[k];
-}
-
-function onTasksLoad(data)
-{
-	for (const k in data)
-	{
-		onTasksAppend(k, data[k]);
-	}
-}
-
-function onTasksAppend(id, data)
-{
-	id = Number(id); if (Number.isNaN(id)) return;
-
-	var sec = document.getElementById('tasks');
-	var form = document.createElement('form');
-	var tab = document.createElement('table');
-	var row = document.createElement('tr');
-
-	var cols = []; for (i = 0; i < 5; ++i)
-	{
-		col = document.createElement('td');
-		row.appendChild(col);
-		cols.push(col);
-	}
-
-	var sid = '[' + id + ']';
-
-	var dat = data['when'] * 1000 + off;
-	var lab = genLabel(form, '•', null, 'tlab' + sid);
-	var dwhen = genItem(form, 'input', 'date', 'dwhen' + sid, true);
-	var twhen = genItem(form, 'input', 'time', 'twhen' + sid, true);
-	var sact = genItem(form, 'select', null, 'job' + sid, true);
-	var bdel = genItem(form, 'input', 'button', 'tdel' + sid);
-
-	for (k in acts)
-	{
-		var opt = document.createElement('option');
-		opt.innerText = acts[k];
-		opt.value = k;
-		sact.appendChild(opt);
-	}
-
-	bdel.onclick = function()
-	{
-		onTasksRemove(id);
-	}
-
-	dwhen.valueAsNumber = new Date(dat);
-	dwhen.min = new Date();
-	twhen.valueAsNumber = new Date(dat);
-	sact.value = data['job'];
-	bdel.value = 'Usuń';
-
-	cols[2].innerText = ':';
-
-	cols[0].appendChild(lab);
-	cols[1].appendChild(dwhen);
-	cols[1].appendChild(twhen);
-	cols[3].appendChild(sact);
-	cols[4].appendChild(bdel);
-
-	tab.appendChild(row);
-	form.appendChild(tab);
-	sec.appendChild(form);
-
-	form.id = 'task_' + id;
-}
-
-function onTasksAdd()
-{
-	if (set_locked) return;
-	else set_locked = true;
-
-	$.when($.get('genid.var?task'))
-	.done(function(data)
-	{
-		ta_add.push(Number(data));
-		onExpand('tasks', true);
-		onTasksAppend(data, {});
-		set_locked = false;
-	})
-	.fail(function()
-	{
-		onError('id');
-	});
-}
-
-function onTasksRemove(id)
-{
-	document.getElementById('task_' + id).remove();
-
-	var n = ta_add.indexOf(id);
-
-	if (n > -1) ta_add.splice(n, 1);
-	else ta_del.push(id);
-}
-
-function onTasksSave()
-{
-	if (set_locked) return;
-	else set_locked = true;
-
-	var sec = document.getElementById('tasks').children;
-	var req = {}, ch = false, ok = true;
-
-	for (k in ta_del) { req[ta_del[k]] = { 'del': true }; ch = true; }
-	for (i = 0; i < sec.length; ++i)
-	{
-		var id = Number(sec[i].id.replace('task_', ''));
-
-		var sid = '[' + id + ']';
-		var org = ta_last[id];
-
-		var ejob = document.getElementById('job' + sid);
-		var edate = document.getElementById('dwhen' + sid);
-		var etime = document.getElementById('twhen' + sid);
-
-		var job = Number(ejob.value);
-		var when = Number(
-			(edate.valueAsNumber - off) / 1000 +
-			etime.valueAsNumber / 1000);
-
-		ok = ok &&
-			ejob.validity.valid &&
-			edate.validity.valid &&
-			etime.validity.valid;
-
-		const sc =
-		{
-			'when': when,
-			'job': job
-		};
-
-		const is_ch = org == null ||
-			sc.when != org.when ||
-			sc.job != org.job;
-
-		if (is_ch)
-		{
-			req[id] = sc;
-			ch = true;
-		}
-	}
-
-	if (ch && ok) showToast('Zapisywanie zmian...', 0);
-
-	if (!ch) onError('nc');
-	else if (!ok) onError('val');
-	else	$.when($.ajax(
-	{
-		'url': 'taskup',
-		'type': 'POST',
-		'contentType': 'application/json',
-		'data': JSON.stringify(req)
-	}))
-	.done(function(msg)
-	{
-		if (msg == "True")
-		{
-			onTasksUpdate(req);
-			onDone('save_tas');
-		}
-		else
-		{
-			onError('save_tas');
-		}
-	})
-	.fail(function()
-	{
-		onError('save_tas');
-	});
-}
-
-function onTasksReset()
-{
-	var sec = document.getElementById('tasks').children;
-
-	while (sec.length) sec[0].remove();
-
-	if (ta_org == null) onLoad();
-	else onTasksLoad(ta_org);
-
-	onExpand('tasks', true);
-}
-
-function onTasksUpdate(data)
-{
-	for (const k in data)
-		ta_last[k] = data[k];
 }

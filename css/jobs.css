@@ -11,30 +11,6 @@ label
 	margin-left: 25px;
 }
 
-div
-{
-	transition: all 1s linear 0s;
-}
-
-div.on
-{
-	opacity: 1;
-	visibility: visible;
-}
-
-div.off
-{
-	opacity: 0;
-	visibility: hidden;
-}
-
-div.hide
-{
-	opacity: 0;
-	visibility: hidden;
-	display: none;
-}
-
 td > *
 {
 	height: 100%;
@@ -73,16 +49,4 @@ input[type=checkbox]:checked + label
 {
 	background: green;
 	color: white;
-}
-
-section > p
-{
-	transition: 0.25s ease-in;
-	margin-right: auto;
-	padding: 10px;
-}
-
-section > p:hover
-{
-	background-color: lightgreen;
 }

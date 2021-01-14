@@ -1,9 +1,18 @@
-var pl_colors = ['firebrick', 'olive', 'teal', 'seagreen', 'coral', 'crimson', 'limegreen', 'peru'];
-var set_locked = false;
+const pl_colors = ['firebrick', 'olive', 'teal', 'seagreen', 'coral', 'crimson', 'limegreen', 'peru'];
+
+const errors =
+{
+	'pwr': 'Nie udało się wykonać zapytania'
+};
+
+const dones =
+{
+	'pwr': 'Sterowanie zostało zaktualizowane'
+};
 
 function onLoad()
 {
-	$.ajaxSetup({ 'timeout': 10000 });
+	$.ajaxSetup({ 'timeout': 5000 });
 
 	$.when
 	(
@@ -152,9 +161,7 @@ function onEnable(param)
 	.done(function()
 	{
 		$.getJSON('system.json', onSystem);
-		showToast('Sterowanie zaktualizowane', 5000);
-
-		set_locked = false;
+		onDone('pwr');
 	})
 	.fail(onError);
 }
@@ -170,15 +177,10 @@ function onDriver(param)
 	.done(function()
 	{
 		$.getJSON('system.json', onSystem);
-		showToast('Sterowanie zaktualizowane', 5000);
-
-		set_locked = false;
+		onDone('pwr');
 	})
-	.fail(onError);
-}
-
-function onError()
-{
-	showToast('Nie udało się wykonać zapytania', 5000);
-	set_locked = false;
+	.fail(function()
+	{
+		onError('pwr');
+	});
 }

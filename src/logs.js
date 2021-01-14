@@ -16,12 +16,14 @@ const messages =
 	}
 }
 
-var set_locked = false;
-var hidden = [];
+const errors =
+{
+	'clr': 'Nie udało się usunąć historii',
+};
 
 function onLoad()
 {
-	$.ajaxSetup({ 'timeout': 2500 });
+	$.ajaxSetup({ 'timeout': 5000 });
 
 	$.when($.getJSON('log.json', onLogs))
 	.done(function()
@@ -135,40 +137,8 @@ function onClear()
 
 		set_locked = false;
 	})
-	.fail(function() { onError(); });
-}
-
-function onExpand(tree)
-{
-	var e = document.getElementById(tree);
-	if (e == null) return;
-
-	if (e.className == 'hide')
+	.fail(function()
 	{
-		e.className = 'off';
-		setTimeout(function()
-		{
-			const i = hidden.indexOf(tree);
-			if (i != -1) hidden.splice(i, 1);
-
-			e.className = 'on';
-		}, 150);
-	}
-	else
-	{
-		e.className = 'off';
-		setTimeout(function()
-		{
-			const i = hidden.indexOf(tree);
-			if (i == -1) hidden.push(tree);
-
-			e.className = 'hide';
-		}, 1000);
-	}
-}
-
-function onError()
-{
-	showToast('Nie udało się wykonać zapytania', 5000);
-	set_locked = false;
+		onError('clr');
+	});
 }

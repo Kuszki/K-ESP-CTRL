@@ -7,19 +7,20 @@
 
 		<link rel="stylesheet" type="text/css" href="main.css"/>
 		<link rel="stylesheet" type="text/css" href="tabs.css"/>
-		<link rel="stylesheet" type="text/css" href="toast.css"/>
 
 		<title>Sterownik K-ESP-CTRL: Status</title>
 
 		<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 
 		<script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/moment/locale/pl.min.js"></script>
+
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/hammerjs"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
 
+		<script src="main.js"></script>
 		<script src="index.js"></script>
-		<script src="toast.js"></script>
 
 		<script> $(document).ready(onLoad); </script>
 
@@ -27,7 +28,7 @@
 	<body>
 
 		<header>
-			<p>Status sterownika K-ESP-CTRL</p>
+			<p>Status sterownika K-ESP-Ctrl</p>
 			<nav>
 				<a href="https://github.com/Kuszki/K-ESP-CTRL">Informacje</a>
 			</nav>
@@ -37,9 +38,10 @@
 			<nav>
 				<p>Urządzenie</p>
 				<a href="index.html">Status</a>
-				<a href="scheds.html">Grafik</a>
 				<a href="logs.html">Historia</a>
+				<a href="tasks.html">Zadania</a>
 				<a href="prefs.html">Ustawienia</a>
+				<a href="scheds.html">Harmonogram</a>
 				<p>Sterowanie</p>
 				<a href="javascript:void(0)" onclick="onEnable(1)">Włącz</a>
 				<a href="javascript:void(0)" onclick="onEnable(0)">Wyłącz</a>

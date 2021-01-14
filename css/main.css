@@ -1,3 +1,8 @@
+*
+{
+	box-sizing: border-box;
+}
+
 body
 {
 	margin-top: 85px;
@@ -116,7 +121,41 @@ th, td
 	padding: 5px;
 }
 
-*
+footer
 {
-	box-sizing: border-box;
+	visibility: hidden;
+	min-width: 300px;
+	margin-left: -160px;
+	background-color: black;
+	color: white;
+	text-align: center;
+	padding: 20px;
+	position: fixed;
+	left: 50%;
+	bottom: 50px;
+	border-radius: 5px;
+}
+
+footer.show
+{
+	visibility: visible;
+	animation: fadein 1s;
+}
+
+footer.hide
+{
+	visibility: visible;
+	animation: fadeout 1s;
+}
+
+@keyframes fadein
+{
+  from { bottom: 0; opacity: 0; }
+  to { bottom: 50px; opacity: 1; }
+}
+
+@keyframes fadeout
+{
+  from { bottom: 50px; opacity: 1; }
+  to { bottom: 0; opacity: 0; }
 }

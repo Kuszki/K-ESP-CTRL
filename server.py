@@ -3,7 +3,7 @@ from driver import driver; gc.collect()
 from server import server; gc.collect()
 from json import dumps; gc.collect()
 
-p = Pin(25, Pin.OUT, value = 0)
+p = Pin(5, Pin.OUT, value = 0)
 d = driver(p); gc.collect()
 s = server(); gc.collect()
 
@@ -20,7 +20,7 @@ s.defslite('tempup', lambda v: d.set_temps(v))
 s.defslite('schedup', lambda v: d.set_scheds(v))
 s.defslite('taskup', lambda v: d.set_tasks(v))
 
-gc.threshold(25600)
+gc.threshold(4096)
 gc.collect()
 
 while True:
