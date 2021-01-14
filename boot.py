@@ -1,10 +1,14 @@
-from netconf import configure, sta_active
+from netconf import configure
 from ntptime import settime
+from gc import collect
 
-import gc, micropython; gc.collect()
+try:
 
-if not sta_active(): configure()
+	collect()
+	configure()
+	settime()
 
-try:	settime()
 except: pass
-finally: gc.collect()
+finally:
+
+	collect()

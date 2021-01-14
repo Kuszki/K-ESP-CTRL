@@ -452,6 +452,7 @@ class driver:
 			if 'driver' in v:
 
 				self.set_driver(v['driver'])
+				self.last_loop = 0
 				num = num + 1
 
 			if 'save' in v:
