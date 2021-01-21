@@ -2,7 +2,7 @@ const errors =
 {
 	'load': 'Nie udało się wczytać ustawień',
 	'save': 'Nie udało się zapisać ustawień',
-	'boot': 'Nie udało się zrestartować urządzenia'
+	'boot': 'Nie udało się zrestartować urządzenia',
 	'val': 'Zadane parametry są niepoprawne',
 	'nc': 'Brak zmian do zapisania'
 };
@@ -128,7 +128,6 @@ function onReboot()
 	$.when($.get('config', { reboot: true }))
 	.done(function()
 	{
-		$.getJSON('system.json', onSystem);
 		onDone('boot');
 	})
 	.fail(function()

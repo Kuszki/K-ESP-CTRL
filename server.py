@@ -15,7 +15,7 @@ while st > 0:
 		sleep(5)
 		st -= 1
 
-	else: sync = 0
+	else: st = 0
 
 d = driver(p); gc.collect()
 s = server(); gc.collect()

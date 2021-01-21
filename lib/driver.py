@@ -113,8 +113,7 @@ class driver:
 		self.out = out
 		self.out.off()
 
-		self.save_logs('boot', 1)
-		gc.collect()
+		self.save_logs('boot', machine.reset_cause())
 
 	def save_settings(self):
 

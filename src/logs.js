@@ -12,7 +12,11 @@ const messages =
 	},
 	'boot':
 	{
-		1: 'Włączono sterownik'
+		1: 'Włączono sterownik',
+		2: 'Zrestartowano sterownik',
+		3: 'Zrestartowano sterownik',
+		4: 'Obudzono sterownik',
+		5: 'Zrestartowano sterownik'
 	}
 }
 
