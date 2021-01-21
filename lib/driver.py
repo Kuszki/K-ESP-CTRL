@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-import time, ntptime, json, requests, os, gc
+import time, ntptime, json, requests, machine, os, gc
 
 class driver:
 
@@ -98,7 +98,9 @@ class driver:
 		self.curr_temp = None
 		self.out_temp = None
 		self.out_wet = None
+
 		self.power = False
+		self.reboot = False
 
 		self.last_loop = 0
 		self.last_sync = 0
@@ -112,7 +114,6 @@ class driver:
 		self.out.off()
 
 		self.save_logs('boot', 1)
-
 		gc.collect()
 
 	def save_settings(self):
@@ -458,6 +459,11 @@ class driver:
 			if 'save' in v:
 
 				self.save_settings()
+				num = num + 1
+
+			if 'reboot' in v:
+
+				self.reboot = True
 				num = num + 1
 
 			if 'rmlogs' in v:
@@ -820,7 +826,8 @@ class driver:
 
 	def on_loop(self):
 
-		if time.time() - self.last_loop >= self.loop:
+		if self.reboot: machine.reset()
+		elif time.time() - self.last_loop >= self.loop:
 
 			self.curr_temp = self.get_calc()
 			self.last_loop = self.get_time()

@@ -2,13 +2,15 @@ const errors =
 {
 	'load': 'Nie udało się wczytać ustawień',
 	'save': 'Nie udało się zapisać ustawień',
+	'boot': 'Nie udało się zrestartować urządzenia'
 	'val': 'Zadane parametry są niepoprawne',
 	'nc': 'Brak zmian do zapisania'
 };
 
 const dones =
 {
-	'save': 'Ustawienia zostały zapisane'
+	'save': 'Ustawienia zostały zapisane',
+	'boot': 'Urządzenie zostało zrestartowane'
 };
 
 var cf_org, cf_last = null;
@@ -114,4 +116,23 @@ function onUpdate(data)
 {
 	for (const k in data)
 		cf_last[k] = data[k];
+}
+
+function onReboot()
+{
+	if (set_locked) return;
+	else set_locked = true;
+
+	showToast('Łączenie z urządzeniem...', 0);
+
+	$.when($.get('config', { reboot: true }))
+	.done(function()
+	{
+		$.getJSON('system.json', onSystem);
+		onDone('boot');
+	})
+	.fail(function()
+	{
+		onError('boot');
+	});
 }

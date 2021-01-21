@@ -21,6 +21,8 @@ const errors =
 	'clr': 'Nie udało się usunąć historii',
 };
 
+var firstload = true;
+
 function onLoad()
 {
 	$.ajaxSetup({ 'timeout': 5000 });
@@ -43,7 +45,7 @@ function onLogs(data)
 	const diff = Date.UTC(2000, 0, 1) - new Date(2000, 0, 1);
 	const off = Date.UTC(2000, 0, 1);
 
-	var table = '', days = {};
+	var table = '', days = {}, num = 0;
 
 	data.sort(function(a, b)
 	{
@@ -82,6 +84,9 @@ function onLogs(data)
 
 	for (const k in days)
 	{
+		if (!firstload || !num) ++num;
+		else { hidden.push(k); ++num; }
+
 		const hd = hidden.indexOf(k) == -1 ? "on" : "hide";
 
 		table += `<p onclick="onExpand('${k}')">${k}</p>`;
@@ -111,6 +116,7 @@ function onLogs(data)
 	}
 
 	$('#log').html(table);
+	firstload = false;
 }
 
 function onSave()

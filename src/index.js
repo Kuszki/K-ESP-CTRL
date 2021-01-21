@@ -163,7 +163,10 @@ function onEnable(param)
 		$.getJSON('system.json', onSystem);
 		onDone('pwr');
 	})
-	.fail(onError);
+	.fail(function()
+	{
+		onError('pwr');
+	});
 }
 
 function onDriver(param)
