@@ -1,5 +1,7 @@
 # coding=UTF-8
 
+from ntptime import settime
+from time import sleep
 import network, json
 
 def configure():
@@ -31,6 +33,20 @@ def configure():
 			essid = con['ssid'], password = con['pass'], \
 			authmode = network.AUTH_WPA_WPA2_PSK, \
 			dhcp_hostname = con['name'])
+
+	if 'sync' in conf: synctime(conf['sync'])
+
+def synctime(st = 6):
+
+	while st > 0:
+
+		try: settime()
+		except:
+
+			sleep(5)
+			st -= 1
+
+		else: st = 0
 
 def sta_active():
 

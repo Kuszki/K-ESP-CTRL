@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-import socket, select, json, os, gc
+import socket, select, json, gc
 from binascii import a2b_base64
 from micropython import const
 

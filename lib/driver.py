@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-import time, ntptime, json, requests, machine, os, gc
+import time, ntptime, json, requests, machine, os, gc, esp32
 
 class driver:
 
@@ -12,7 +12,7 @@ class driver:
 	POWER = { False: 'Wyłączony', True: 'Włączony' }
 	DRIVER = { 0: 'Ręczne', 1: 'Automatyczne' }
 
-	def __init__(self, out):
+	def __init__(self, out, pot):
 
 		try: self.schedules = json.load(open('/etc/plan.json', 'r'))
 		except: self.schedules = dict()
@@ -102,6 +102,7 @@ class driver:
 		self.power = False
 		self.reboot = False
 
+		self.last_boot = time.time()
 		self.last_loop = 0
 		self.last_sync = 0
 		self.last_sw = 0
@@ -110,8 +111,8 @@ class driver:
 		self.tl_save = 0
 		self.tw_save = 0
 
+		self.pot = pot
 		self.out = out
-		self.out.off()
 
 		self.save_logs('boot', machine.reset_cause())
 
@@ -522,6 +523,43 @@ class driver:
 			'Pogoda': self.out_wet
 		}
 
+	def get_devinfo(self):
+
+		dt = self.last_boot + self.tzone * 3600
+		tb = time.localtime(dt)[0:6]
+
+		dt = self.last_sw + self.tzone * 3600
+		ts = time.localtime(dt)[0:6]
+
+		dt = self.last_sync + self.tzone * 3600
+		tt = time.localtime(dt)[0:6]
+
+		dt = self.tw_save + self.tzone * 3600
+		tw = time.localtime(dt)[0:6]
+
+		dt = self.tp_save + self.tzone * 3600
+		tp = time.localtime(dt)[0:6]
+
+		dt = self.tl_save + self.tzone * 3600
+		tl = time.localtime(dt)[0:6]
+
+		dt = time.time() - self.last_boot
+		udays = dt / 86400; dt %= 86400
+		uhours = dt / 3600; dt %= 3600
+		umins = dt / 60; dt %= 60
+
+		return \
+		{
+			'Data uruchomienia': '%02d.%02d.%d %d:%02d:%02d' % (tb[2], tb[1], tb[0], tb[3], tb[4], tb[5]),
+			'Ostatnie przełączenie': '%02d.%02d.%d %d:%02d:%02d' % (ts[2], ts[1], ts[0], ts[3], ts[4], ts[5]),
+			'Synchronizacja czasu': '%02d.%02d.%d %d:%02d:%02d' % (tt[2], tt[1], tt[0], tt[3], tt[4], tt[5]),
+			'Synchronizacja pogody': '%02d.%02d.%d %d:%02d:%02d' % (tw[2], tw[1], tw[0], tw[3], tw[4], tw[5]),
+			'Synchronizacja wykresu': '%02d.%02d.%d %d:%02d:%02d' % (tp[2], tp[1], tp[0], tp[3], tp[4], tp[5]),
+			'Synchronizacja historii': '%02d.%02d.%d %d:%02d:%02d' % (tl[2], tl[1], tl[0], tl[3], tl[4], tl[5]),
+			'Temperatura sterownika': '%s ℃' % str(round((esp32.raw_temperature() - 32) / 1.8, 2)),
+			'Czas pracy': '%d dni %d godzin %d minut' % (udays, uhours, umins)
+		}
+
 	def get_params(self):
 
 		return \
@@ -816,6 +854,9 @@ class driver:
 
 			self.out_wet = wet[0].upper() + wet[1:]
 			self.out_temp = round(temp, 2)
+
+			try: self.pot.set_temp(temp)
+			except: self.pot.set_ohms(-1)
 
 		except:
 
