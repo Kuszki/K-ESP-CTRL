@@ -6,14 +6,14 @@
 		<meta name="Author" content='Łukasz "Kuszki" Dróżdż'>
 
 		<link rel="stylesheet" type="text/css" href="main.css"/>
-		<link rel="stylesheet" type="text/css" href="jobs.css"/>
+		<link rel="stylesheet" type="text/css" href="info.css"/>
 
-		<title>Sterownik K-ESP-Ctrl: Harmonogram</title>
+		<title>Sterownik K-ESP-Ctrl: Informacje</title>
 
 		<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 
 		<script src="main.js"></script>
-		<script src="scheds.js"></script>
+		<script src="info.js"></script>
 
 		<script> $(document).ready(onLoad); </script>
 
@@ -21,7 +21,7 @@
 	<body>
 
 		<header>
-			<p>Harmonogram sterownika K-ESP-Ctrl</p>
+			<p>Informacje sterownika K-ESP-Ctrl</p>
 			<nav>
 				<a href="https://github.com/Kuszki/K-ESP-Ctrl">Github</a>
 			</nav>
@@ -36,16 +36,18 @@
 				<a href="info.html">Informacje</a>
 				<a href="prefs.html">Ustawienia</a>
 				<a href="scheds.html">Harmonogram</a>
-				<p>Harmonogram</p>
-				<a href="javascript:void(0)" onclick="onAdd()">Dodaj</a>
-				<a href="javascript:void(0)" onclick="onSave()">Zapisz</a>
-				<a href="javascript:void(0)" onclick="onReset()">Przywróć</a>
 			</nav>
 		</menu>
 
 		<section>
-			<p>Harmonogram</p>
-			<div id="scheds"></div>
+			<p onclick="onExpand('dev')">Informacje techniczne</p>
+			<div id="dev" class="on"></div>
+			<p onclick="onExpand('sta')">Status sterownika</p>
+			<div id="sta" class="hide"></div>
+			<p onclick="onExpand('tmp')">Odczyt temperatur</p>
+			<div id="tmp" class="hide"></div>
+			<p onclick="onExpand('raw')">Surowe ustawienia</p>
+			<div id="raw" class="hide"></div>
 		</section>
 
 		<footer id="toast"></footer>

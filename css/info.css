@@ -17,36 +17,36 @@ td > *
 table tr td:first-child,
 table tr th:first-child
 {
-	width: 125px;
+	width: 250px;
 }
 
-table.on
+div.on
 {
 	opacity: 1;
 	visibility: visible;
 }
 
-table.off
+div.off
 {
 	opacity: 0;
 	visibility: hidden;
 }
 
-table.hide
+div.hide
 {
 	opacity: 0;
 	visibility: hidden;
 	display: none;
 }
 
-section > div > p
+section > p
 {
 	transition: 0.25s ease-in;
 	margin-right: auto;
 	padding: 10px;
 }
 
-section > div > p:hover
+section > p:hover
 {
 	background-color: lightgreen;
 }

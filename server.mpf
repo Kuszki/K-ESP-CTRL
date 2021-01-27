@@ -36,6 +36,7 @@ mrm .*
 
 putc lib/server.py
 putc lib/driver.py
+putc lib/potent.py
 putc lib/netconf.py
 putc lib/requests.py
 
@@ -44,12 +45,14 @@ put http/scheds.html
 put http/tasks.html
 put http/prefs.html
 put http/logs.html
+put http/info.html
 
 put css/main.css
 put css/tabs.css
 put css/sets.css
 put css/jobs.css
 put css/logs.css
+put css/info.css
 
 put src/index.js
 put src/scheds.js
@@ -57,6 +60,7 @@ put src/tasks.js
 put src/prefs.js
 put src/logs.js
 put src/main.js
+put src/info.js
 
 put etc/network.json
 put etc/default.json

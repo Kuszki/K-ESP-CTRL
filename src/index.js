@@ -80,7 +80,7 @@ function onLoad()
 	$.when($.getJSON('temps.json', onTemps))
 	.done(function()
 	{
-		setInterval($.getJSON, 10000, 'temps.json', onTemps);
+		setInterval($.getJSON, 30000, 'temps.json', onTemps);
 	})
 	.fail(function()
 	{
