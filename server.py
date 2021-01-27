@@ -27,6 +27,8 @@ s.defslite('scheds.json', lambda v: dumps(d.get_scheds()))
 s.defslite('tasks.json', lambda v: dumps(d.get_tasks()))
 s.defslite('history.json', lambda v: dumps(d.get_hist()))
 s.defslite('devinfo.json', lambda v: dumps(d.get_devinfo()))
+s.defslite('updates.json', lambda v: dumps(d.get_updates()))
+s.defslite('timing.json', lambda v: dumps(d.get_timing()))
 s.defslite('genid.var', lambda v: d.get_uids(v))
 
 s.defslite('config', lambda v: d.set_params(v))

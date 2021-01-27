@@ -22,10 +22,20 @@ function onLoad()
 		$('#sta').html('Błąd w ładowaniu danych');
 	});
 
-	$.when($.getJSON('temps.json', onTemps))
+	$.when($.getJSON('timing.json', onTimes))
 	.done(function()
 	{
-		setInterval($.getJSON, 30000, 'temps.json', onTemps);
+		setInterval($.getJSON, 90000, 'timing.json', onTimes);
+	})
+	.fail(function()
+	{
+		$('#raw').html('Błąd w ładowaniu danych');
+	});
+
+	$.when($.getJSON('updates.json', onTemps))
+	.done(function()
+	{
+		setInterval($.getJSON, 30000, 'updates.json', onTemps);
 	})
 	.fail(function()
 	{
@@ -81,34 +91,43 @@ function onSystem(data)
 	$('#sta').html(table + '</table>');
 }
 
+function onTimes(data)
+{
+	var table = '<table>';
+	var keys = Object.keys(data).sort();
+	var temp = null;
+
+	const off = Date.UTC(2000, 0, 1);
+
+	for (const k in keys)
+	{
+		temp = data[keys[k]];
+
+		const time = new Date(temp * 1000 + off);
+		const sdate = time.toLocaleString('pl');
+
+		table += `<tr><td>${keys[k]}</td><td>${sdate}</td></tr>`;
+	}
+
+	$('#syn').html(table + '</table>');
+}
+
 function onTemps(data)
 {
 	var table = '<table>';
 	var keys = Object.keys(data).sort();
 	var temp = null;
 
-	var i = keys.indexOf('Obliczona');
-	if (i != -1)
-	{
-		keys.splice(i, 1);
-		keys.unshift('Obliczona');
-	}
-
-	var j = keys.indexOf('Zewnętrzna');
-	if (j != -1)
-	{
-		keys.splice(j, 1);
-		keys.push('Zewnętrzna');
-	}
+	const off = Date.UTC(2000, 0, 1);
 
 	for (const k in keys)
 	{
 		temp = data[keys[k]];
 
-		if (!Number.isFinite(temp)) temp = 'Brak danych';
-		else temp = Number(temp).toFixed(1) + ' ℃';
+		const time = new Date(temp * 1000 + off);
+		const sdate = time.toLocaleString('pl');
 
-		table += `<tr><td>${keys[k]}</td><td>${temp}</td></tr>`;
+		table += `<tr><td>${keys[k]}</td><td>${sdate}</td></tr>`;
 	}
 
 	$('#tmp').html(table + '</table>');
