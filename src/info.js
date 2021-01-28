@@ -41,35 +41,60 @@ function onLoad()
 	{
 		$('#tmp').html('Błąd w ładowaniu danych');
 	});
-
-	$.when($.getJSON('prefs.json', onRaw))
-	.done(function()
-	{
-		setInterval($.getJSON, 60000, 'prefs.json', onRaw);
-	})
-	.fail(function()
-	{
-		$('#raw').html('Błąd w ładowaniu danych');
-	});
 }
 
 function onDevinfo(data)
+{
+	$('#dev').html(onDatatab(data));
+}
+
+function onSystem(data)
+{
+	$('#sta').html(onDatatab(data));
+}
+
+function onTimes(data)
+{
+	$('#syn').html(onTimetab(data));
+}
+
+function onTemps(data)
+{
+	$('#tmp').html(onTimetab(data));
+}
+
+function onSave()
+{
+	var f = document.getElementById('informations');
+	var txt = f.innerText;
+
+	var uriContent = 'data:text/plain;charset=utf-8,' + encodeURIComponent(txt);
+	var newWindow = window.open(uriContent, 'k-esp-ctrl-info.txt');
+}
+
+function onTimetab(data)
 {
 	var table = '<table>';
 	var keys = Object.keys(data).sort();
 	var temp = null;
 
-	for (const i in keys)
-	{
-		const k = keys[i];
+	const off = Date.UTC(2000, 0, 1);
 
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`;
+	for (const k in keys)
+	{
+		temp = data[keys[k]];
+
+		const time = new Date(temp * 1000 + off);
+		const sdate = time.toLocaleString('pl');
+		const v = temp != 0 ? sdate : '-'.repeat(32);
+
+		table += `<tr><td>${keys[k]}</td><td>${v}</td></tr>`;
 	}
 
-	$('#dev').html(table + '</table>');
+	return table + '</table>';
 }
 
-function onSystem(data)
+function onDatatab(data)
 {
 	var table = '<table>';
 	var keys = Object.keys(data).sort();
@@ -88,63 +113,5 @@ function onSystem(data)
 		table += `<tr><td>${p}</td><td>${v}</td></tr>`;
 	}
 
-	$('#sta').html(table + '</table>');
-}
-
-function onTimes(data)
-{
-	var table = '<table>';
-	var keys = Object.keys(data).sort();
-	var temp = null;
-
-	const off = Date.UTC(2000, 0, 1);
-
-	for (const k in keys)
-	{
-		temp = data[keys[k]];
-
-		const time = new Date(temp * 1000 + off);
-		const sdate = time.toLocaleString('pl');
-
-		table += `<tr><td>${keys[k]}</td><td>${sdate}</td></tr>`;
-	}
-
-	$('#syn').html(table + '</table>');
-}
-
-function onTemps(data)
-{
-	var table = '<table>';
-	var keys = Object.keys(data).sort();
-	var temp = null;
-
-	const off = Date.UTC(2000, 0, 1);
-
-	for (const k in keys)
-	{
-		temp = data[keys[k]];
-
-		const time = new Date(temp * 1000 + off);
-		const sdate = time.toLocaleString('pl');
-
-		table += `<tr><td>${keys[k]}</td><td>${sdate}</td></tr>`;
-	}
-
-	$('#tmp').html(table + '</table>');
-}
-
-function onRaw(data)
-{
-	var table = '<table>';
-	var keys = Object.keys(data).sort();
-	var temp = null;
-
-	for (const i in keys)
-	{
-		const k = keys[i];
-
-		table += `<tr><td>${k}</td><td>${data[k]}</td></tr>`;
-	}
-
-	$('#raw').html(table + '</table>');
+	return table + '</table>';
 }

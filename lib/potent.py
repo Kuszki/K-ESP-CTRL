@@ -33,12 +33,12 @@ class potent:
 
 	def set_ohms(self, ohms, mode = 0):
 
-		if ohms < 0:
+		if ohms <= 0:
 
 			if mode: value = 0
 			else: value = self.bits - 1
 
-		elif not mode:
+		elif mode:
 
 			value = self.bits*ohms - self.rw
 			value = value / self.rmax

@@ -12,7 +12,7 @@ class driver:
 	CUR = 'Obliczona'
 	OUT = 'Zewnętrzna'
 
-	def __init__(self, out, pot):
+	def __init__(self, out, pot, lmi):
 
 		try: self.schedules = json.load(open('/etc/plan.json', 'r'))
 		except: self.schedules = dict()
@@ -113,6 +113,7 @@ class driver:
 
 		self.pot = pot
 		self.out = out
+		self.lmi = lmi
 
 		self.save_logs('boot', machine.reset_cause())
 
@@ -531,23 +532,26 @@ class driver:
 		umins = dt / 60; dt %= 60
 
 		tmp = esp32.raw_temperature()
+		lmt = self.lmi.read() / 40.95
 
 		return \
 		{
 			'Czas pracy': '%dd %dh %dm' % (udays, uhours, umins),
-			'Temperatura': '%s ℃' % str(round((tmp-32) / 1.8, 2))
+			'Temperatura CPU': '%s ℃' % str(round((tmp-32) / 1.8, 2)),
+			'Temperatura sterownika': '%s ℃' % str(round(lmt, 2)),
+			'Dostępna pamięć RAM': '%s kB' % (gc.mem_free() // 1024)
 		}
 
 	def get_timing(self):
 
 		return \
 		{
-			'Data uruchomienia': self.last_boot,
-			'Ostatnie przełączenie': self.last_sw,
-			'Synchronizacja czasu': self.last_sync,
-			'Synchronizacja pogody': self.tw_save,
-			'Synchronizacja wykresu': self.tp_save,
-			'Synchronizacja historii': self.tl_save
+			'Uruchomienie': self.last_boot,
+			'Przełączenie': self.last_sw,
+			'Czas': self.last_sync,
+			'Pogoda': self.tw_save,
+			'Wykres': self.tp_save,
+			'Historia': self.tl_save
 		}
 
 	def get_params(self):

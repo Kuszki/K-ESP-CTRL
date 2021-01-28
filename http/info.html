@@ -32,14 +32,17 @@
 				<p>Urządzenie</p>
 				<a href="index.html">Status</a>
 				<a href="logs.html">Historia</a>
-				<a href="tasks.html">Zadania</a>
 				<a href="info.html">Informacje</a>
+				<p>Preferencje</p>
+				<a href="tasks.html">Zadania</a>
 				<a href="prefs.html">Ustawienia</a>
 				<a href="scheds.html">Harmonogram</a>
+				<p>Informacje</p>
+				<a href="javascript:void(0)" onclick="onSave()">Zapisz</a>
 			</nav>
 		</menu>
 
-		<section>
+		<section id="informations">
 			<p onclick="onExpand('dev')">Informacje techniczne</p>
 			<div id="dev" class="on"></div>
 			<p onclick="onExpand('sta')">Status sterownika</p>
@@ -48,8 +51,6 @@
 			<div id="tmp" class="hide"></div>
 			<p onclick="onExpand('syn')">Czasy synchronizacji</p>
 			<div id="syn" class="hide"></div>
-			<p onclick="onExpand('raw')">Surowe ustawienia</p>
-			<div id="raw" class="hide"></div>
 		</section>
 
 		<footer id="toast"></footer>

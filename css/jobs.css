@@ -17,6 +17,12 @@ td > *
 	vertical-align: middle;
 }
 
+section > p
+{
+	margin-right: auto;
+	padding: 10px;
+}
+
 table tr td:first-child,
 table tr th:first-child
 {

@@ -92,8 +92,9 @@ function onLogs(data)
 		else { hidden.push(k); ++num; }
 
 		const hd = hidden.indexOf(k) == -1 ? "on" : "hide";
+		const uk = k.charAt(0).toUpperCase() + k.slice(1);
 
-		table += `<p onclick="onExpand('${k}')">${k}</p>`;
+		table += `<p onclick="onExpand('${k}')">${uk}</p>`;
 		table += `<table id="${k}" class="${hd}">`;
 
 		for (const j in days[k])

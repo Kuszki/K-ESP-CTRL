@@ -1,11 +1,13 @@
-from machine import SPI, Pin, Timer; gc.collect()
+from machine import ADC, SPI, Pin, Timer, freq;
+
 from driver import driver; gc.collect()
 from server import server; gc.collect()
 from potent import potent; gc.collect()
 from json import dumps; gc.collect()
 
-c = Pin(27, Pin.OUT, value = 1)
-p = Pin(25, Pin.OUT, value = 0)
+c = Pin(2, Pin.OUT, value = 1)
+p = Pin(23, Pin.OUT, value = 0)
+l = ADC(Pin(34, Pin.IN))
 
 b = SPI(1, \
 	baudrate = 10000, \
@@ -14,7 +16,7 @@ b = SPI(1, \
 	miso = Pin(12))
 
 t = potent(b, c); gc.collect()
-d = driver(p, t); gc.collect()
+d = driver(p, t, l); gc.collect()
 s = server(); gc.collect()
 
 t.set_potent(100000, 256)
@@ -37,6 +39,7 @@ s.defslite('schedup', lambda v: d.set_scheds(v))
 s.defslite('taskup', lambda v: d.set_tasks(v))
 
 gc.threshold(25600)
+freq(240000000)
 gc.collect()
 
 while True:
