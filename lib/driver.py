@@ -54,6 +54,9 @@ class driver:
 		try: self.hminus = settings['main']['minus']
 		except: self.hminus = 0.75
 
+		try: self.hcurv = settings['main']['curve']
+		except: self.hcurv = 27
+
 		try: self.tzone = settings['time']['zone']
 		except: self.tzone = 0
 
@@ -325,6 +328,16 @@ class driver:
 					num = num + 1
 				else: ok = False
 
+			if 'hcurv' in v:
+
+				val = float(v['hcurv'])
+
+				if 0.0 <= val <= 30.0:
+					self.hcurv = val
+					self.tw_save = 0
+					num = num + 1
+				else: ok = False
+
 			if 'psize' in v:
 
 				val = int(v['psize'])
@@ -565,6 +578,7 @@ class driver:
 			'loop': self.loop,
 			'hplus': self.hplus,
 			'hminus': self.hminus,
+			'hcurv': self.hcurv,
 			'psize': self.psize,
 			'lsize': self.lsize,
 			'wtok': self.wtok,
@@ -589,7 +603,8 @@ class driver:
 				'target': self.def_temp,
 				'funct': self.funct,
 				'plus': self.hplus,
-				'minus': self.hminus
+				'minus': self.hminus,
+				'curve': self.hcurv
 			},
 			'time':
 			{
@@ -834,29 +849,30 @@ class driver:
 
 	def on_outdor(self, now):
 
-		if not self.wtok or not self.wpla:
+		if not self.wtok or not self.wpla: fail = True
+		else:
+			try:
 
-			self.out_temp = None
-			self.out_wet = None
-			self.tw_save = 0
+				req = self.REQ % (self.wpla, self.wtok)
+				ans = requests.get(req).json()
 
-			return None
+				wet = ans['weather'][0]['description']
+				temp = ans['main']['temp']
+				diff = 27 - self.hcurv
 
-		try:
+				self.out_wet = wet[0].upper() + wet[1:]
+				self.out_temp = round(temp, 2)
 
-			req = self.REQ % (self.wpla, self.wtok)
-			ans = requests.get(req).json()
+				try: self.pot.set_temp(temp + diff)
+				except: self.pot.set_ohms(-1)
 
-			wet = ans['weather'][0]['description']
-			temp = ans['main']['temp']
+			except: fail = True
+			else: fail = False
 
-			self.out_wet = wet[0].upper() + wet[1:]
-			self.out_temp = round(temp, 2)
+		if fail:
 
-			try: self.pot.set_temp(temp)
-			except: self.pot.set_ohms(-1)
-
-		except:
+			diff = 27 - self.hcurv
+			self.pot.set_temp(diff)
 
 			self.out_temp = None
 			self.out_wet = None

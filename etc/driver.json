@@ -1,33 +1,34 @@
 {
-	"main":
-	{
-		"target": 20.0,
-		"funct": 0,
-		"driver": 0,
-		"minus": 0.75,
-		"plus": 0.75
-	},
-	"time":
-	{
-		"zone": 1,
-		"loop": 30,
-		"sync": 600,
-		"minon": 3600,
-		"minoff": 3600
-	},
-	"plot":
-	{
-		"size": 72,
-		"age": 259200
-	},
-	"logs":
-	{
-		"size": 25,
-		"age": 259200
-	},
 	"outdor":
 	{
 		"token": "",
 		"place": ""
+	},
+	"plot":
+	{
+		"size": 120,
+		"age": 432000
+	},
+	"logs":
+	{
+		"size": 50,
+		"age": 432000
+	},
+	"time":
+	{
+		"sync": 1800,
+		"zone": 1,
+		"loop": 30,
+		"minon": 3600,
+		"minoff": 3600
+	},
+	"main":
+	{
+		"driver": 1,
+		"plus": 0.5,
+		"funct": 0,
+		"target": 20,
+		"minus": 0.75,
+		"curve": 27
 	}
 }
