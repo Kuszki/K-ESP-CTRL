@@ -305,7 +305,7 @@ class driver:
 
 				val = float(v['hplus'])
 
-				if 0.5 <= val <= 3.0:
+				if 0.25 <= val <= 3.0:
 					self.hplus = val
 					num = num + 1
 				else: ok = False
@@ -314,7 +314,7 @@ class driver:
 
 				val = float(v['hminus'])
 
-				if 0.5 <= val <= 3.0:
+				if 0.25 <= val <= 3.0:
 					self.hminus = val
 					num = num + 1
 				else: ok = False
