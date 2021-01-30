@@ -550,9 +550,10 @@ class driver:
 		return \
 		{
 			'Czas pracy': '%dd %dh %dm' % (udays, uhours, umins),
-			'Temperatura CPU': '%s ℃' % str(round((tmp-32) / 1.8, 2)),
-			'Temperatura sterownika': '%s ℃' % str(round(lmt, 2)),
-			'Dostępna pamięć RAM': '%s kB' % (gc.mem_free() // 1024)
+			'Temperatura CPU': '%s ℃' % round((tmp-32) / 1.8, 2),
+			'Temperatura sterownika': '%s ℃' % round(lmt, 2),
+			'Dostępna pamięć RAM': '%s kB' % round(gc.mem_free() / 1024, 2),
+			'Rezystancja czujnika': '%s kΩ' % round(self.pot.get_ohms() / 1000, 2)
 		}
 
 	def get_timing(self):
@@ -780,6 +781,8 @@ class driver:
 		hist = os.listdir('/var')
 		saves = dict()
 
+		self.tp_save = now
+
 		if self.curr_temp != None:
 			saves[self.CUR] = self.curr_temp
 
@@ -831,6 +834,7 @@ class driver:
 		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: return None
 		else: save = False
+		finally: self.tl_save = now
 
 		if now - logs[0]['t'] >= self.lage: logs = []
 		else:
@@ -849,34 +853,35 @@ class driver:
 
 	def on_outdor(self, now):
 
-		if not self.wtok or not self.wpla: fail = True
+		null = self.out_temp != None
+		diff = 27 - self.hcurv
+		late = False
+
+		if not (self.wtok and self.wpla): late = True
 		else:
+
 			try:
 
 				req = self.REQ % (self.wpla, self.wtok)
 				ans = requests.get(req).json()
 
 				wet = ans['weather'][0]['description']
-				temp = ans['main']['temp']
-				diff = 27 - self.hcurv
+				temp = float(ans['main']['temp'])
 
 				self.out_wet = wet[0].upper() + wet[1:]
 				self.out_temp = round(temp, 2)
+				self.pot.set_temp(temp + diff)
+				self.tw_save = now
 
-				try: self.pot.set_temp(temp + diff)
-				except: self.pot.set_ohms(-1)
+			except:
 
-			except: fail = True
-			else: fail = False
+				late = now - self.tw_save >= self.ptime
 
-		if fail:
+		if null and late:
 
-			diff = 27 - self.hcurv
 			self.pot.set_temp(diff)
-
 			self.out_temp = None
 			self.out_wet = None
-			self.tw_save = 0
 
 	def on_loop(self):
 
@@ -913,22 +918,16 @@ class driver:
 			power = self.get_drive()
 
 		if self.power != power and swok:
-			self.last_sw = now
 			self.set_power(power)
 
-		if now - self.tw_save >= self.ptime:
-			self.tw_save = now
+		if now - self.tw_save >= self.ptime/2:
 			self.on_outdor(now)
 
 		if now - self.tp_save >= self.ptime:
-			self.tp_save = now
 			self.on_hist(now)
 
 		if now - self.tl_save >= self.ltime:
-			self.tl_save = now
 			self.on_logs(now)
 
 		if not len(self.temperatures):
 			self.curr_temp = None
-
-		gc.collect()

@@ -10,7 +10,7 @@ p = Pin(23, Pin.OUT, value = 0)
 l = ADC(Pin(34, Pin.IN))
 
 b = SPI(1, \
-	baudrate = 10000, \
+	baudrate = 100000, \
 	mosi = Pin(13), \
 	sck = Pin(14), \
 	miso = Pin(12))
