@@ -177,10 +177,6 @@ class driver:
 		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: logs = list()
 
-		for v in logs:
-			if now - v['t'] >= self.lage:
-				logs.remove(v)
-
 		while len(logs) >= self.lsize: logs.pop(-1)
 
 		logs.insert(0, { 't': now, 'k': k, 's': s })
@@ -526,7 +522,7 @@ class driver:
 		else:
 			if self.tar_temp == 100.0: suf = self.POWER[True]
 			elif self.tar_temp == 0.0: suf = self.POWER[False]
-			else: suf = '%s ℃' % self.tar_temp
+			else: suf = '%00.2f ℃' % self.tar_temp
 
 		return \
 		{
@@ -550,10 +546,10 @@ class driver:
 		return \
 		{
 			'Czas pracy': '%dd %dh %dm' % (udays, uhours, umins),
-			'Temperatura CPU': '%s ℃' % round((tmp-32) / 1.8, 2),
-			'Temperatura sterownika': '%s ℃' % round(lmt, 2),
-			'Dostępna pamięć RAM': '%s kB' % round(gc.mem_free() / 1024, 2),
-			'Rezystancja czujnika': '%s kΩ' % round(self.pot.get_ohms() / 1000, 2)
+			'Temperatura CPU': '%00.2f ℃' % ((tmp-32) / 1.8),
+			'Temperatura sterownika': '%00.2f ℃' % (lmt),
+			'Dostępna pamięć RAM': '%00.2f kB' % (gc.mem_free() / 1024),
+			'Rezystancja czujnika': '%00.2f kΩ' % (self.pot.get_ohms() / 1000)
 		}
 
 	def get_timing(self):

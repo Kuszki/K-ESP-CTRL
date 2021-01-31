@@ -10,7 +10,7 @@ p = Pin(23, Pin.OUT, value = 0)
 l = ADC(Pin(34, Pin.IN))
 
 b = SPI(1, \
-	baudrate = 100000, \
+	baudrate = 9600, \
 	mosi = Pin(13), \
 	sck = Pin(14), \
 	miso = Pin(12))
@@ -19,8 +19,9 @@ t = potent(b, c); gc.collect()
 d = driver(p, t, l); gc.collect()
 s = server(); gc.collect()
 
-t.set_potent(100000, 256)
+t.set_potent(100000, 256, 1160)
 t.set_term(10000, 3977)
+t.set_ohms(10000)
 
 s.defslite('temps.json', lambda v: dumps(d.get_temps()))
 s.defslite('system.json', lambda v: dumps(d.get_status()))
