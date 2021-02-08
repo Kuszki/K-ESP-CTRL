@@ -923,7 +923,7 @@ class driver:
 			self.on_hist(now)
 
 		if now - self.tl_save >= self.ltime:
-			self.on_logs(now)
+			self.on_logs(now - now % 86400)
 
 		if not len(self.temperatures):
 			self.curr_temp = None
