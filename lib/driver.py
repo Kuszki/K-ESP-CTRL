@@ -830,11 +830,14 @@ class driver:
 		try: logs = json.load(open('/etc/log.json', 'r'))
 		except: return None
 		else: save = False
-		finally: self.tl_save = now
+		finally:
+
+			self.tl_save = now
+			now -= now % 86400
 
 		if now - logs[0]['t'] >= self.lage: logs = []
 		else:
-			while now - logs[-1]['t'] >= self.page:
+			while now - logs[-1]['t'] >= self.lage:
 				logs.pop(-1)
 				save = True
 
@@ -923,7 +926,7 @@ class driver:
 			self.on_hist(now)
 
 		if now - self.tl_save >= self.ltime:
-			self.on_logs(now - now % 86400)
+			self.on_logs(now)
 
 		if not len(self.temperatures):
 			self.curr_temp = None

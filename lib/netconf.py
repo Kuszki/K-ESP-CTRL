@@ -29,7 +29,7 @@ def configure():
 
 		net.active(bool(int(con['on'])))
 
-		if net.active(): self.ap_if.config(\
+		if net.active(): net.config(\
 			essid = con['ssid'], password = con['pass'], \
 			authmode = network.AUTH_WPA_WPA2_PSK, \
 			dhcp_hostname = con['name'])
