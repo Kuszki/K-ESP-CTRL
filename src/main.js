@@ -81,6 +81,22 @@ function genLabel(f, t, p = null, n = null)
 	return i;
 }
 
+function genHash(string)
+{
+	var hash = 0;
+	if (string.length == 0) return hash;
+
+	for (let i = 0; i < string.length; i++)
+	{
+		var charCode = string.charCodeAt(i);
+
+		hash = ((hash << 7) - hash) + charCode;
+		hash = hash & hash;
+	}
+
+	return hash;
+}
+
 function showToast(msg, time)
 {
 	var x = document.getElementById('toast');

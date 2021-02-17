@@ -96,9 +96,10 @@ function onLogs(data)
 	for (const k in days)
 	{
 		var times = 0.0, found = false, minus = 0.0;
+		const hs = genHash(k).toString();
 
 		if (!firstload || !num) ++num;
-		else { hidden.push(k); ++num; }
+		else { hidden.push(hs); ++num; }
 
 		for (var j = days[k].length - 1; j >= 0; --j)
 		{
@@ -129,7 +130,7 @@ function onLogs(data)
 			found = true;
 		}
 
-		const hd = hidden.indexOf(k) == -1 ? "on" : "hide";
+		const hd = hidden.indexOf(hs) == -1 ? "on" : "hide";
 		const uk = k.charAt(0).toUpperCase() + k.slice(1);
 		const stip =
 		(
@@ -138,8 +139,8 @@ function onLogs(data)
 				Math.floor(times % 60) + 'm'
 		);
 
-		table += `<p title="${stip}" onclick="onExpand('${k}')">${uk}</p>`;
-		table += `<table id="${k}" class="${hd}">`;
+		table += `<p title="${stip}" onclick="onExpand('${hs}')">${uk}</p>`;
+		table += `<table id="${hs}" class="${hd}">`;
 
 		for (const j in days[k])
 		{

@@ -129,3 +129,9 @@ dmypy.json
 
 # pem files
 /obj/*.pem
+
+# test files
+/test
+
+# micropython image
+*.bin
