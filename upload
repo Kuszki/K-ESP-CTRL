@@ -1,18 +1,33 @@
 #!/bin/bash
 
-PATH=$PATH:/usr/local/lib/python3.8/dist-packages/mpy_cross
+PATH=$PATH:/usr/local/lib/python3.9/dist-packages/mpy_cross
+
+if [ "$1" = "-sm" ]
+then
+	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 erase_flash
+	python3 esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash -z 0x1000 micropython.bin
+	mpfshell ttyUSB0 -s server.mpf
+fi
+
+if [ "$1" = "-cm" ]
+then
+	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 erase_flash
+	python3 esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash -z 0x1000 micropython.bin
+	mpfshell ttyUSB0 -s client.mpf
+fi
 
 if [ "$1" = "-s" ]
 then
-	mpfshell -s server.mpf
+	mpfshell ttyUSB0 -s server.mpf
 fi
 
 if [ "$1" = "-c" ]
 then
-	mpfshell -s client.mpf
+	mpfshell ttyUSB0 -s client.mpf
 fi
 
 if [ "$2" = "-r" ]
 then
 	mpfshell ttyUSB0 -c "repl"
 fi
+
