@@ -2,18 +2,16 @@
 
 PATH=$PATH:/usr/local/lib/python3.9/dist-packages/mpy_cross
 
-if [ "$1" = "-sm" ]
+if [ "$1" = "-m-esp32" ]
 then
 	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 erase_flash
-	python3 esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash -z 0x1000 micropython.bin
-	mpfshell ttyUSB0 -s server.mpf
+	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect -z 0x1000 esp32.bin
 fi
 
-if [ "$1" = "-cm" ]
+if [ "$1" = "-m-esp8266" ]
 then
-	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 erase_flash
-	python3 esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash -z 0x1000 micropython.bin
-	mpfshell ttyUSB0 -s client.mpf
+	python3 -m esptool --chip esp8266 --port /dev/ttyUSB0 erase_flash
+	python3 -m esptool --chip esp8266 --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect -fm dio 0 esp8266.bin
 fi
 
 if [ "$1" = "-s" ]
