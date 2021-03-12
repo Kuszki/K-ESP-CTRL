@@ -3,12 +3,16 @@
 	{
 		"ssid": "",
 		"pass": "",
+		"name": "KESPCTRL",
 		"on": true
 	},
 	"access":
 	{
-		"ssid": "",
-		"pass": "",
 		"on": false
+	},
+	"sync":
+	{
+		"try": 5,
+		"sleep": 10
 	}
 }

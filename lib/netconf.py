@@ -34,16 +34,18 @@ def configure():
 			authmode = network.AUTH_WPA_WPA2_PSK, \
 			dhcp_hostname = con['name'])
 
-	if 'sync' in conf: synctime(conf['sync'])
+	if 'sync' in conf:
 
-def synctime(st = 6):
+		synctime(conf['sync']["try"], conf['sync']["sleep"])
+
+def synctime(st = 6, sl = 10):
 
 	while st > 0:
 
 		try: settime()
 		except:
 
-			sleep(5)
+			sleep(sl)
 			st -= 1
 
 		else: st = 0
