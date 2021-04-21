@@ -8,3 +8,7 @@ ESP8266/ESP32 home heat system driver
 - Provide HTTP interface
 - Plot data using Chart JS
 - Many features and options
+
+# More info
+
+- https://kuszki.github.io/kespctrl.html
