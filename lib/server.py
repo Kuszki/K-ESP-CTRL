@@ -1,8 +1,9 @@
 # coding=UTF-8
 
 import socket, select, json, gc
-from binascii import a2b_base64
+from binascii import a2b_base64, hexlify
 from micropython import const
+from hashlib import sha1
 
 class server:
 
@@ -191,7 +192,11 @@ class server:
 			p = auth[1].decode()
 
 		if not u in self.users: return False
-		else: return self.users[u] == p
+		else:
+			h = hexlify(sha1(p).digest())
+			ok = self.users[u] == h.decode()
+
+		return ok
 
 	def unquote(self, string):
 
