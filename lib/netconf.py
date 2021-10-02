@@ -17,10 +17,12 @@ def configure():
 		net.active(bool(int(con['on'])))
 
 		if 'name' in con:
-			net.config(dhcp_hostname = con['name'])
+			try: net.config(dhcp_hostname = con['name'])
+			except: pass
 
 		if net.active():
-			net.connect(con['ssid'], con['pass'])
+			try: net.connect(con['ssid'], con['pass'])
+			except: pass
 
 	if 'access' in conf:
 

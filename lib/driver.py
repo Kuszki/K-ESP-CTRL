@@ -695,6 +695,8 @@ class driver:
 		driver = self.driver
 		power = self.power
 
+		t = t + self.tzone * 3600
+
 		for k in v:
 
 			when = v[k]['when']

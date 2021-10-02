@@ -14,7 +14,7 @@ const dones =
 	'save': 'Zadania zostały zapisane'
 };
 
-const off = 2*Date.UTC(2000, 0, 1) - new Date(2000, 0, 1);
+const off = Date.UTC(2000, 0, 1);
 
 var org = null, last = null;
 var del = [], add = [];
@@ -70,8 +70,7 @@ function onAppend(id, data)
 
 	var dat = data['when'] * 1000 + off;
 	var lab = genLabel(form, '•', null, 'tlab' + sid);
-	var dwhen = genItem(form, 'input', 'date', 'dwhen' + sid, true);
-	var twhen = genItem(form, 'input', 'time', 'twhen' + sid, true);
+	var dwhen = genItem(form, 'input', 'datetime-local', 'dwhen' + sid, true);
 	var sact = genItem(form, 'select', null, 'job' + sid, true);
 	var bdel = genItem(form, 'input', 'button', 'tdel' + sid);
 
@@ -88,9 +87,8 @@ function onAppend(id, data)
 		onRemove(id);
 	}
 
-	dwhen.valueAsNumber = new Date(dat);
+	dwhen.valueAsNumber = dat;
 	dwhen.min = new Date();
-	twhen.valueAsNumber = new Date(dat);
 	sact.value = data['job'];
 	bdel.value = 'Usuń';
 
@@ -98,7 +96,6 @@ function onAppend(id, data)
 
 	cols[0].appendChild(lab);
 	cols[1].appendChild(dwhen);
-	cols[1].appendChild(twhen);
 	cols[3].appendChild(sact);
 	cols[4].appendChild(bdel);
 
@@ -156,17 +153,14 @@ function onSave()
 
 		var ejob = document.getElementById('job' + sid);
 		var edate = document.getElementById('dwhen' + sid);
-		var etime = document.getElementById('twhen' + sid);
 
 		var job = Number(ejob.value);
-		var when = Number(
-			(edate.valueAsNumber - off) / 1000 +
-			etime.valueAsNumber / 1000);
+
+		var when = Number((edate.valueAsNumber - off) / 1000);
 
 		ok = ok &&
 			ejob.validity.valid &&
-			edate.validity.valid &&
-			etime.validity.valid;
+			edate.validity.valid;
 
 		const sc =
 		{
