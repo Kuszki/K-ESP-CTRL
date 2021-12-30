@@ -32,11 +32,11 @@ mrm .*
 cd /
 mrm .*
 
-putc lib/server.py
-putc lib/driver.py
-putc lib/potent.py
-putc lib/netconf.py
-putc lib/requests.py
+put lib/server.mpy
+put lib/driver.mpy
+put lib/potent.mpy
+put lib/netconf.mpy
+put lib/requests.mpy
 
 put http/index.html
 put http/scheds.html

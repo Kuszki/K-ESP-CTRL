@@ -2,6 +2,14 @@
 
 PATH=$PATH:/usr/local/lib/python3.9/dist-packages/mpy_cross
 
+if [ "$1" = "-c" ] || [ "$1" = "-s" ]
+then
+	for f in lib/*.py
+	do
+		mpy-cross -O3 -march=xtensa $f
+	done
+fi
+
 if [ "$1" = "-m-esp32" ]
 then
 	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 erase_flash
@@ -24,8 +32,12 @@ then
 	mpfshell ttyUSB0 -s client.mpf
 fi
 
-if [ "$2" = "-r" ]
+if [ "$1" = "-c" ] || [ "$1" = "-s" ]
 then
-	mpfshell ttyUSB0 -c "repl"
+	rm lib/*.mpy
 fi
 
+if [ "$2" = "-r" ]
+then
+	mpfshell ttyUSB0 -c repl
+fi
