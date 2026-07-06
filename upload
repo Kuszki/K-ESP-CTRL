@@ -3,7 +3,7 @@
 CHIP="none"
 ROLE="none"
 
-PORT="/dev/ttyUSB0"
+PORT="ttyUSB0"
 
 DO_FEECH=false
 DO_FLASH=false
@@ -93,16 +93,16 @@ fi
 
 if [ $DO_FLASH == true ] && [ "$CHIP" == "esp32" ]
 then
-	esptool --chip esp32 --port "$PORT" erase-flash
+	esptool --chip esp32 --port "/dev/$PORT" erase-flash
 	sleep 1s
-	esptool --chip esp32 --port "$PORT" --baud 460800 write-flash --flash-size=detect -z 0x1000 esp32.bin
+	esptool --chip esp32 --port "/dev/$PORT" --baud 460800 write-flash --flash-size=detect -z 0x1000 esp32.bin
 fi
 
 if [ $DO_FLASH == true ] && [ "$CHIP" == "esp8266" ]
 then
-	esptool --chip esp8266 --port "$PORT" erase-flash
+	esptool --chip esp8266 --port "/dev/$PORT" erase-flash
 	sleep 1s
-	esptool --chip esp8266 --port "$PORT" --baud 460800 write-flash --flash-size=detect -fm dio 0 esp8266.bin
+	esptool --chip esp8266 --port "/dev/$PORT" --baud 460800 write-flash --flash-size=detect -fm dio 0 esp8266.bin
 fi
 
 if [ "$ROLE" == "server" ]
@@ -117,7 +117,7 @@ fi
 
 if [ $DO_BUILD == false ]
 then
-	rm lib/*.mpy
+	rm -f lib/*.mpy
 fi
 
 if [ $DO_REPL == true ]
