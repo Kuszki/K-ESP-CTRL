@@ -1,8 +1,8 @@
 {
 	"outdor":
 	{
-		"token": "",
-		"place": ""
+		"token": "c6b8836a613969bab6d312b2182a6522",
+		"place": "Będzin"
 	},
 	"plot":
 	{
@@ -11,24 +11,24 @@
 	},
 	"logs":
 	{
-		"size": 50,
+		"size": 100,
 		"age": 432000
 	},
 	"time":
 	{
-		"sync": 1800,
+		"sync": 3600,
+		"minoff": 3600,
 		"zone": 1,
 		"loop": 30,
-		"minon": 3600,
-		"minoff": 3600
+		"minon": 3600
 	},
 	"main":
 	{
-		"driver": 1,
-		"plus": 0.5,
 		"funct": 0,
-		"target": 20,
 		"minus": 0.75,
-		"curve": 27
+		"curve": 12.5,
+		"plus": 0.75,
+		"target": 19.75,
+		"driver": 1
 	}
 }

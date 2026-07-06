@@ -1,8 +1,8 @@
 # coding=UTF-8
 
-import socket, select, json, gc
+import socket, select, json, time, gc
+
 from binascii import a2b_base64, hexlify
-from micropython import const
 from hashlib import sha1
 
 class server:
@@ -11,6 +11,9 @@ class server:
 
 		try: self.users = json.load(open('/etc/users.json', 'r'))
 		except: self.users = dict()
+
+		try: self.etags = json.load(open('/etc/etags.json', 'r'))
+		except: self.etags = dict()
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -32,109 +35,138 @@ class server:
 			else: s.settimeout(3)
 
 			try: self.recv(s)
-			except: pass
+			except: gc.collect()
 			else: gc.collect()
 			finally: s.close()
 
 	def recv(self, sock):
 
-		try:
+		try: buff = sock.recv(1460)
+		except: return None
 
-			try: buff = sock.recv(1024)
-			except: return None
+		while buff.find(b'\r\n\r\n') == -1:
+			if not buff: raise BufferError
+			else: buff += sock.recv(1460)
 
-			while buff.find(b'\r\n\r\n') == -1:
-				if not buff: raise BufferError
-				else: buff += sock.recv(1024)
+		if not self.auth(buff):
+			code = b'401 Unauthorized'
+			slite = etag = None
 
-			if not self.auth(buff):
-				code = b'401 Unauthorized'
-				slite = None
+		elif buff.startswith(b'GET /'):
+			slite, par, etag = self.get(buff, sock)
 
-			elif buff.startswith(b'GET /'):
-				slite, par = self.get(buff, sock)
-
-			elif buff.startswith(b'POST /'):
-				slite, par = self.post(buff, sock)
-
-			else:
-				code = b'405 Method Not Allowed'
-				slite = None
-
-			del buff; gc.collect()
-
-			if slite: code = self.resp(slite, par, sock)
-
-			if code: sock.sendall(\
-				b'HTTP/1.1 %s\r\n' \
-				b'Allow: GET, POST\r\n' \
-				b'Connection: close\r\n' \
-				b'Content-Length: %s\r\n' \
-				b'WWW-Authenticate: Basic\r\n' \
-				b'Accept: application/json\r\n' \
-				b'text/plain; charset=utf-8\r\n' \
-				b'\r\n%s' % (code, len(code), code))
-
-		except: raise
-		finally: gc.collect()
-
-	def resp(self, slite, par, sock):
-
-		con = mim = siz = res = None
-
-		if slite in self.slites:
-			try: con = self.slites[slite](par)
-			except: return b'406 Not Acceptable'
+		elif buff.startswith(b'POST /'):
+			slite, par = self.post(buff, sock)
+			etag = time.ticks_ms()
 
 		else:
-			try: res, mim, siz = self.slite(slite)
-			except: return b'404 Not Found'
+			code = b'405 Method Not Allowed'
+			slite = etag = None
 
-		if res == None: res = str(con).encode()
-		if mim == None: mim = self.mime(slite)
-		if siz == None: siz = len(res)
+		del buff; gc.collect()
 
-		try:
+		if slite: code = self.resp(slite, par, etag, sock)
 
-			sock.sendall(\
-				b'HTTP/1.1 200 OK\r\n' \
-				b'Content-Type: %s\r\n' \
-				b'Connection: close\r\n' \
-				b'Content-Length: %s\r\n' \
-				b'\r\n' % (mim, siz))
-			sock.sendall(res)
+		if etag == None:  etag = b'null'
+		else: etag = str(etag).encode()
 
-		except: raise
-		finally: del res
+		if code: sock.sendall(\
+			b'HTTP/1.1 %s\r\n' \
+			b'ETag: %s\r\n'\
+			b'Connection: close\r\n' \
+			b'WWW-Authenticate: Basic\r\n' \
+			b'\r\n' % (code, etag))
+
+	def resp(self, slite, par, etag, sock):
+
+		if slite in self.slites:
+			try:
+				res = str(self.slites[slite](par)).encode()
+				siz = len(res)
+			except:
+				return b'406 Not Acceptable'
+			else:
+				gen = True;
+
+		elif self.changed(slite, etag):
+			try:
+				res, siz = self.slite(slite)
+				etag = self.etag(slite)
+			except:
+				return b'404 Not Found'
+			else:
+				gen = False;
+
+		else: return b'304 Not Modified'
+
+		try: mim = self.mime(slite)
+		except: mim = b'text/plain'
+
+		if slite.endswith('.gz'): enc = b'gzip'
+		else: enc = b'identity'
+
+		if type(siz) == str: siz = siz.encode()
+		else: siz = str(siz).encode()
+
+		if type(etag) == str: etag = etag.encode()
+		else: etag = str(etag).encode()
+
+		try: sock.sendall(\
+			b'HTTP/1.1 200 OK\r\n' \
+			b'Connection: close\r\n' \
+			b'Content-Type: %s\r\n' \
+			b'Content-Length: %s\r\n' \
+			b'Content-Encoding: %s\r\n' \
+			b'ETag: %s\r\n' \
+			b'\r\n' % (mim, siz, enc, etag))
+		except:
+			return b'500 Internal Server Error'
+
+		if gen: sock.sendall(res)
+		else:
+
+			while True:
+
+				chunk = res.read(1460)
+
+				if not chunk: break
+				else: sock.sendall(chunk)
+
+			res.close()
+			gc.collect()
 
 	def get(self, req, sock):
 
 		e = req.find(b'\r\n')
 		a = req.find(b'GET /', 0, e) + 5
 		b = req.find(b' HTTP', a, e)
+		e = req.find(b'\r\n\r\n', b)
 
 		if a == 4 or b == -1 or a > b:
 			return str(), dict()
-		else: req = req[a:b]
 
-		par = req.find(b'?')
-		d = self.unquote
+		p = req.find(b'?', a, b)
 
-		if par != -1:
+		if p != -1:
 
-			slite = d(req[0:par])
-			req = req[par+1:]
-			vlist = self.split(req)
+			slite = self.unquote(req[a:p])
+			vlist = self.split(req[p+1:b])
 
 		else:
 
-			slite = d(req)
+			slite = self.unquote(req[a:b])
 			vlist = dict()
+
+		a = req.find(b'If-None-Match: ', b + 11, e) + 15
+		b = req.find(b'\r\n', a, e)
+
+		if a == 14 or b == -1 or a > b: etag = None
+		else: etag = req[a:b].decode()
 
 		if slite == b'': slite = 'index.html'
 		else: slite = slite.decode()
 
-		return slite, vlist
+		return slite, vlist, etag
 
 	def post(self, req, sock):
 
@@ -152,10 +184,11 @@ class server:
 
 		j = req.find(b'Content-Type: application/json', b, e)
 		p = req.find(b'Content-Type: text/plain', b, e)
-		a = req.find(b'Content-Length: ', b, e) + 15
+
+		a = req.find(b'Content-Length: ', b, e) + 16
 		b = req.find(b'\r\n', a, e)
 
-		if a == 14 or b == -1 or a > b:
+		if a == 15 or b == -1 or a > b:
 			return slite, dict()
 
 		else:
@@ -189,7 +222,7 @@ class server:
 		if len(auth) != 2: return False
 		else:
 			u = auth[0].decode()
-			p = auth[1].decode()
+			p = auth[1]
 
 		if not u in self.users: return False
 		else:
@@ -251,21 +284,24 @@ class server:
 		elif path.endswith('.json'): path = '/etc/%s' % path
 		elif path.endswith('.css'): path = '/css/%s' % path
 		elif path.endswith('.js'): path = '/src/%s' % path
+		elif path.endswith('.gz'): path = '/arch/%s' % path
 
 		else: path = '/var/%s' % path
 
 		try:
 
-			with open(path, 'rb') as f:
+			cont = open(path, 'rb')
 
-				mime = self.mime(path)
-				cont = f.read()
-				size = len(cont)
+			cont.seek(0, 2)
+			size = cont.tell()
+			cont.seek(0)
 
 		except: raise
-		else: return cont, mime, size
+		else: return cont, size
 
 	def mime(self, path):
+
+		if path.endswith(".gz"): path = path[:-3]
 
 		if path.startswith('/var/'): mime = b'application/json'
 		elif path.endswith('.html'): mime = b'text/html'
@@ -277,6 +313,17 @@ class server:
 		else: mime = b'text/plain'
 
 		return b'%s; charset=utf-8' % mime
+
+	def etag(self, path):
+
+		if path in self.etags: return self.etags[path]
+		else: return str(time.ticks_ms())
+
+	def changed(self, path, etag):
+
+		if etag == None: return True
+		elif not path in self.etags: return True
+		else: return etag != self.etags[path]
 
 	def defslite(self, slite, callback):
 

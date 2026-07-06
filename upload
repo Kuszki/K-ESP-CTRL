@@ -1,8 +1,66 @@
 #!/bin/bash
 
-PATH=$PATH:/usr/local/lib/python3.9/dist-packages/mpy_cross
+CHIP="none"
+ROLE="none"
 
-if [ "$1" = "-c" ] || [ "$1" = "-s" ]
+PORT="/dev/ttyUSB0"
+
+DO_FEECH=false
+DO_FLASH=false
+DO_REPL=false
+DO_BUILD=false
+
+IS_FIRST=true
+
+while [ "$1" != "" ]; do
+
+	PARAM=`echo $1 | awk -F= '{print $1}'`
+	VALUE=`echo $1 | awk -F= '{print $2}'`
+
+	case $PARAM in
+
+		-m | --mcu)
+			CHIP=$VALUE
+			;;
+
+		-t | --type)
+			ROLE=$VALUE
+			;;
+			
+		-p | --port)
+			PORT=$VALUE
+			;;
+
+		-d | --download)
+			DO_FEECH=true
+			;;
+
+		-f | --flash)
+			DO_FLASH=true
+			;;
+			
+		-r | --repl)
+			DO_REPL=true
+			;;
+			
+		-b | --build)
+			DO_BUILD=true
+			;;
+			
+		-c | --client)
+			ROLE="client"
+			;;
+			
+		-s | --server)
+			ROLE="server"
+			;;
+
+	esac
+	shift
+
+done
+
+if [ $DO_BUILD == true ] || [ "$ROLE" != "none" ]
 then
 	for f in lib/*.py
 	do
@@ -10,34 +68,59 @@ then
 	done
 fi
 
-if [ "$1" = "-m-esp32" ]
+if [ $DO_FEECH == true ]
 then
-	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 erase_flash
-	python3 -m esptool --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect -z 0x1000 esp32.bin
+	wget -qO- "https://code.jquery.com/jquery-latest.min.js"                | gzip -9 > "zip/jquery.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"    | gzip -9 > "zip/moment.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/pl.min.js" | gzip -9 > "zip/moment.pl.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/chart.js@2.9.4"                 | gzip -9 > "zip/chart.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"                 | gzip -9 > "zip/hammer.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"      | gzip -9 > "zip/chart.zoom.js.gz"
 fi
 
-if [ "$1" = "-m-esp8266" ]
+if [ "$ROLE" == "server" ]
 then
-	python3 -m esptool --chip esp8266 --port /dev/ttyUSB0 erase_flash
-	python3 -m esptool --chip esp8266 --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect -fm dio 0 esp8266.bin
+	printf "{\n" > "etc/etags.json"
+
+	for f in obj/*.ico arch/*.gz http/*.html css/*.css src/*.js
+	do
+		if [ $IS_FIRST == true ]; then IS_FIRST=false; else printf ',\n' >> "etc/etags.json"; fi
+		printf '\t"%s": "%s"' $(basename "$f") $(cksum "$f" | awk '{print $1}') >> "etc/etags.json"
+	done
+	
+	printf "\n}" >> "etc/etags.json"
 fi
 
-if [ "$1" = "-s" ]
+if [ $DO_FLASH == true ] && [ "$CHIP" == "esp32" ]
 then
-	mpfshell ttyUSB0 -s server.mpf
+	esptool --chip esp32 --port "$PORT" erase-flash
+	sleep 1s
+	esptool --chip esp32 --port "$PORT" --baud 460800 write-flash --flash-size=detect -z 0x1000 esp32.bin
 fi
 
-if [ "$1" = "-c" ]
+if [ $DO_FLASH == true ] && [ "$CHIP" == "esp8266" ]
 then
-	mpfshell ttyUSB0 -s client.mpf
+	esptool --chip esp8266 --port "$PORT" erase-flash
+	sleep 1s
+	esptool --chip esp8266 --port "$PORT" --baud 460800 write-flash --flash-size=detect -fm dio 0 esp8266.bin
 fi
 
-if [ "$1" = "-c" ] || [ "$1" = "-s" ]
+if [ "$ROLE" == "server" ]
+then
+	mpfshell "$PORT" -s server.mpf
+fi
+
+if [ "$ROLE" == "client" ]
+then
+	mpfshell "$PORT" -s client.mpf
+fi
+
+if [ $DO_BUILD == false ]
 then
 	rm lib/*.mpy
 fi
 
-if [ "$2" = "-r" ]
+if [ $DO_REPL == true ]
 then
-	mpfshell ttyUSB0 -c repl
+	mpfshell "$PORT" -c repl
 fi

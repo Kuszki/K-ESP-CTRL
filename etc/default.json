@@ -7,7 +7,7 @@
 	"sync":	30,
 	"hplus":	0.75,
 	"hminus":	0.75,
-	"hcurv":	27,
+	"hcurv":	12.5,
 	"minon":	60,
 	"minoff":	60,
 	"psize":	72,

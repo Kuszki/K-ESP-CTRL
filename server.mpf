@@ -1,6 +1,10 @@
 cd /
 mrm .*
 
+md /arch
+cd /arch
+mrm .*
+
 md /http
 cd /http
 mrm .*
@@ -31,6 +35,13 @@ mrm .*
 
 cd /
 mrm .*
+
+put arch/chart.js.gz  
+put arch/chart.zoom.js.gz  
+put arch/hammer.js.gz  
+put arch/jquery.js.gz  
+put arch/moment.js.gz  
+put arch/moment.pl.js.gz
 
 put lib/server.mpy
 put lib/driver.mpy
@@ -63,6 +74,7 @@ put src/info.js
 put etc/network.json
 put etc/default.json
 put etc/driver.json
+put etc/etags.json
 put etc/users.json
 put etc/plot.json
 put etc/plan.json

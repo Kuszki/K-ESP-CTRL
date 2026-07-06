@@ -1,8 +1,8 @@
 {
 	"client":
 	{
-		"ssid": "",
-		"pass": "",
+		"ssid": "Slowackiego",
+		"pass": "98agnieszka99",
 		"name": "KESPCTRL",
 		"on": true
 	},
@@ -12,7 +12,7 @@
 	},
 	"sync":
 	{
-		"try": 5,
+		"try": 6,
 		"sleep": 10
 	}
 }
