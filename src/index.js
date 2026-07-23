@@ -24,6 +24,10 @@ function onLoad()
 		var off = Date.UTC(2000, 0, 1);
 		var data = new Array();
 
+		config[0].options.tooltips.callbacks.label = function(tooltipItem, data) {
+			return Number(tooltipItem.yLabel).toFixed(1);
+		};
+
 		ctx = $('#plot')[0].getContext('2d');
 		plot = new Chart(ctx, config[0]);
 		moment.locale('pl');
@@ -34,7 +38,7 @@ function onLoad()
 
 			x.fill = false;
 			x.borderColor = pl_colors[cn];
-			x.cubicInterpolationMode = 'monotone'
+			x.cubicInterpolationMode = 'monotone';
 
 			for (j = 0; j < x.data.length; ++j)
 			{
@@ -100,7 +104,7 @@ function onLoad()
 
 function onTemps(data)
 {
-	var table = '<table><tr><th>Miejsce</th><th>Wartość</th>';
+	var table = '<table><tr><th>Miejsce</th><th>Wartość</th></tr>';
 	var keys = Object.keys(data).sort();
 	var temp = null;
 
@@ -133,7 +137,7 @@ function onTemps(data)
 
 function onSystem(data)
 {
-	var table = '<table><tr><th>Parametr</th><th>Wartość</th>';
+	var table = '<table><tr><th>Parametr</th><th>Wartość</th></tr>';
 	var temp = null;
 
 	for (const k in data)

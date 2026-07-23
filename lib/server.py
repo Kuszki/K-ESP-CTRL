@@ -224,7 +224,7 @@ class server:
 			u = auth[0].decode()
 			p = auth[1]
 
-		if not u in self.users: return False
+		if u not in self.users: return False
 		else:
 			h = hexlify(sha1(p).digest())
 			ok = self.users[u] == h.decode()
@@ -234,7 +234,7 @@ class server:
 	def unquote(self, string):
 
 		if not string: return bytes()
-		if not b'%' in string: return string
+		if b'%' not in string: return string
 
 		bits = string.split(b'%')
 		res = [ bits[0] ]
@@ -322,7 +322,7 @@ class server:
 	def changed(self, path, etag):
 
 		if etag == None: return True
-		elif not path in self.etags: return True
+		elif path not in self.etags: return True
 		else: return etag != self.etags[path]
 
 	def defslite(self, slite, callback):

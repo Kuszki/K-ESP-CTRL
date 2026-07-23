@@ -70,12 +70,12 @@ fi
 
 if [ $DO_FEECH == true ]
 then
-	wget -qO- "https://code.jquery.com/jquery-latest.min.js"                | gzip -9 > "zip/jquery.js.gz"
-	wget -qO- "https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"    | gzip -9 > "zip/moment.js.gz"
-	wget -qO- "https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/pl.min.js" | gzip -9 > "zip/moment.pl.js.gz"
-	wget -qO- "https://cdn.jsdelivr.net/npm/chart.js@2.9.4"                 | gzip -9 > "zip/chart.js.gz"
-	wget -qO- "https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"                 | gzip -9 > "zip/hammer.js.gz"
-	wget -qO- "https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"      | gzip -9 > "zip/chart.zoom.js.gz"
+	wget -qO- "https://code.jquery.com/jquery-1.11.1.min.js"                | gzip -9 > "arch/jquery.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"    | gzip -9 > "arch/moment.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/pl.min.js" | gzip -9 > "arch/moment.pl.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/chart.js@2.9.4"                 | gzip -9 > "arch/chart.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"                 | gzip -9 > "arch/hammer.js.gz"
+	wget -qO- "https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"      | gzip -9 > "arch/chart.zoom.js.gz"
 fi
 
 if [ "$ROLE" == "server" ]

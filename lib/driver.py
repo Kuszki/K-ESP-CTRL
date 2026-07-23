@@ -209,14 +209,18 @@ class driver:
 		if self.CUR in v: del v[self.CUR]
 		if self.OUT in v: del v[self.OUT]
 
+		dels = list()
+
 		for k in v:
 
 			try: v[k] = float(v[k])
-			except: del v[k]
+			except: dels.append(k)
 			else: v[k] = round(v[k], 2)
 
 			if 5.0 <= v[k] <= 35.0: pass
-			else: del v[k]
+			else: dels.append(k)
+
+		for k in dels: del v[k]
 
 		if not len(v): return False
 		else: now = self.get_time()
@@ -241,7 +245,7 @@ class driver:
 
 			elif len(s) == 5:
 
-				if not k in self.schedules:
+				if k not in self.schedules:
 					self.schedules[k] = dict()
 
 				try:
@@ -274,7 +278,7 @@ class driver:
 
 			elif len(s) == 2:
 
-				if not k in self.tasks:
+				if k not in self.tasks:
 					self.tasks[k] = dict()
 
 				try:
@@ -688,22 +692,18 @@ class driver:
 
 	def on_task(self, t):
 
-		v = self.tasks
-		dt = self.loop
-		save = False
+		t = t + self.tzone * 3600
 
 		driver = self.driver
 		power = self.power
+		dels = list()
 
-		t = t + self.tzone * 3600
+		for k in self.tasks:
 
-		for k in v:
+			when = self.tasks[k]['when']
+			job = self.tasks[k]['job']
 
-			when = v[k]['when']
-			job = v[k]['job']
-
-			if t - when > 3*dt:
-				del v[k]; save = True
+			if t - when > 3*self.loop: dels.append(k)
 
 			elif t - when >= 0:
 
@@ -711,9 +711,11 @@ class driver:
 				elif job == 1: power = 1; driver = 0
 				elif job == 2: driver = 1
 
-				del v[k]; save = True
+				dels.append(k)
 
-		if save: self.save_tasks()
+		for k in dels: del self.tasks[k]
+
+		if len(dels): self.save_tasks()
 
 		return driver, power
 
